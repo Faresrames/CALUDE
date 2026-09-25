@@ -85,7 +85,11 @@ Confirmado: com "Minimizar tudo", cada módulo continuava um cartão de uns 72px
 
 ---
 
-## 4. Decisões que são suas (não mudei)
+## 4. Segunda rodada (mesmo dia)
+
+Decisões do dono: não existe certificado; o aluno de "alguns módulos" só tem os módulos escolhidos; não há aluno real, então o progresso de teste não precisa ser recalculado. Tudo da seção 5 abaixo foi corrigido, além de dois bugs achados no caminho (o reembolso do Asaas apagava nome e email do comprador; abrir direto um módulo trancado pulava pra aula de outro módulo). PR: https://github.com/Faresrames/area-membros/pull/7
+
+## 5. Decisões da primeira rodada (resolvidas na segunda)
 
 1. **Aluno de "Só alguns módulos" nunca chega a 100%.** O Mario (módulos 1 e 3) vê "0/5 aulas": os módulos que ele não comprou entram na conta. O máximo possível para ele é 60%, e o **certificado fica impossível**. O card do módulo que ele não tem diz "Ainda não liberada", como se fosse liberar. Minha recomendação: nesse modo, contar só os módulos dele e escrever "Não incluso no seu acesso".
 2. **Recalcular o progresso antigo** marcado errado pelo bug 3.1 (a partir do tempo assistido). É um script de uma vez só.
@@ -93,7 +97,7 @@ Confirmado: com "Minimizar tudo", cada módulo continuava um cartão de uns 72px
 
 ---
 
-## 5. Encontrado e ainda não corrigido (design e detalhes)
+## 6. Detalhes de design (todos corrigidos na segunda rodada)
 
 | Onde | O quê |
 |---|---|
