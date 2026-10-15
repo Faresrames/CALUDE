@@ -58,3 +58,9 @@ validada no schema), leitor de tela (axe) e Safari.
   e-mail aparecia na URL depois do pedido de link de login; `audit fix` atualizou o supabase-js
   e quebrou os tipos do @supabase/ssr (atualizado para 0.12.7).
 - Não testado sem as contas: Supabase Auth real, R2, Resend, Asaas (ver `replica/backend.md`).
+
+## /replica-test (2026-10-15)
+
+- Suíte Playwright em `web/e2e/` (33 specs, axe em toda tela, falha com erro de console ou 5xx) + 18 testes de unidade/integração.
+- 6 bugs achados e corrigidos (c15883b): sessão expirada no envio, título longo no celular, prazo sem fuso,
+  CSV com vírgula, CSV virando fórmula, ordem dos títulos. Detalhes em `replica/bugs.md`.
