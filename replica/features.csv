@@ -1,0 +1,35 @@
+feature,area,priority,original,clone,notes
+Cadastro e login do fotógrafo,conta,must,yes,no,[3]
+Criar galeria com cliente titulo e data,galerias,must,yes,no,[1]
+Upload em massa de fotos com progresso,galerias,must,yes,no,[1] milhares de fotos por evento
+Miniaturas e versões leves geradas no servidor,galerias,must,yes,no,inferido; necessário para abrir rápido no celular
+Marca d'água personalizada,galerias,must,yes,no,[1][5]
+Link privado com senha para o cliente,acesso,must,yes,no,[10]
+Grade de fotos do cliente com marcar e desmarcar,seleção,must,yes,no,[1]
+Contador de fotos do pacote (X de Y),seleção,must,yes,no,[7] inferido no Select
+Seleção salva automaticamente,seleção,must,yes,no,inferido; cliente volta depois
+Finalizar e enviar seleção (trava a galeria),seleção,must,yes,no,[5]
+Prazo por galeria que trava a seleção,seleção,must,yes,no,[1][5]
+Painel do fotógrafo com status de cada galeria,gerenciador,must,yes,no,inferido do nome /gerenciador
+Exportar nomes das fotos escolhidas para o Lightroom,entrega,must,yes,no,[5][6]
+Favoritar fotos,seleção,should,yes,no,[1]
+Comentário por foto,seleção,should,yes,no,[1]
+Venda de fotos extras com preço por foto,vendas,should,yes,no,[7][9] confirmar se o Select faz
+Pagamento de extras por PIX,vendas,should,unknown,no,[7] confirmar no Select
+Pagamento de extras por cartão,vendas,should,unknown,no,[7] confirmar no Select
+Lembretes automáticos de prazo ao cliente,notificações,should,yes,no,[1][4]
+Aviso ao fotógrafo quando a seleção é enviada,notificações,should,yes,no,inferido
+Bloqueio de botão direito e download na galeria,acesso,should,yes,no,[1] anti-cópia limitado no navegador
+Aprovação de álbum com comentários na lâmina,álbum,should,yes,no,[1]
+Versões do álbum com histórico de alterações,álbum,should,yes,no,[1]
+Funciona bem no celular,cliente,should,yes,no,[1]
+Teste grátis de 14 dias e planos,saas,should,yes,no,[1] necessário para vender
+Favoritas sugeridas pelo fotógrafo,seleção,could,no,no,[4] ideia do concorrente
+Pastas por momento do evento,galerias,could,unknown,no,[4]
+Entrega final com download em alta,entrega,could,unknown,no,[11]
+Idiomas PT EN ES,conta,could,yes,no,[3]
+Lembrete por WhatsApp,notificações,could,unknown,no,inferido; comum no Brasil
+Galeria pública com cadastro,acesso,could,unknown,no,[10]
+Organização automática no computador do fotógrafo,desktop,could,yes,skip,[1] exige app desktop; fora da v1
+Plugin Lightroom Classic,desktop,could,no,skip,[6] projeto separado; exportar lista cobre a v1
+Sites para fotógrafos da EPICS,outro produto,could,yes,skip,outro produto da EPICS fora do escopo
