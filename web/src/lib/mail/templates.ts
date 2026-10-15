@@ -1,5 +1,5 @@
 // Textos dos e-mails (escritos do zero). Sempre com versão em texto puro.
-import { formatBRL, formatDate } from "../format";
+import { formatBRL, formatDeadline } from "../format";
 import type { Mail } from "./index";
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -27,7 +27,7 @@ export function gallerySentMail(to: string, g: G): Mail {
   const body = layout(`Suas fotos chegaram`, [
     `${hello} ${g.studio} separou as fotos de “${g.title}” para você escolher.`,
     `Escolha ${g.packageSize} fotos para o seu pacote. Dá para fazer pelo celular, com calma: cada foto marcada fica salva na hora.`,
-    ...(g.deadlineAt ? [`Prazo para escolher: ${formatDate(g.deadlineAt, true)}.`] : []),
+    ...(g.deadlineAt ? [`Prazo para escolher: ${formatDeadline(g.deadlineAt)}.`] : []),
   ], { label: "Escolher minhas fotos", url: g.url }, `Enviado por ${g.studio}. Responda este e-mail para falar com o fotógrafo.`);
   return { to, subject: `Escolha suas fotos: ${g.title}`, ...body };
 }
@@ -36,8 +36,8 @@ export function reminderMail(to: string, g: G, kind: "reminder" | "deadline_tomo
   const last = kind === "deadline_tomorrow";
   const body = layout(last ? "Último dia para escolher" : "Suas fotos estão esperando", [
     last
-      ? `O prazo para escolher as fotos de “${g.title}” termina em ${formatDate(g.deadlineAt ?? null, true)}.`
-      : `Passando para lembrar das fotos de “${g.title}”.${g.deadlineAt ? ` O prazo vai até ${formatDate(g.deadlineAt, true)}.` : ""}`,
+      ? `O prazo para escolher as fotos de “${g.title}” termina em ${(g.deadlineAt ? formatDeadline(g.deadlineAt) : "")}.`
+      : `Passando para lembrar das fotos de “${g.title}”.${g.deadlineAt ? ` O prazo vai até ${formatDeadline(g.deadlineAt)}.` : ""}`,
     "O que você já marcou continua salvo. É só abrir o link e continuar de onde parou.",
   ], { label: "Continuar a seleção", url: g.url }, `Enviado por ${g.studio}.`);
   return { to, subject: last ? `Último dia: fotos de ${g.title}` : `Lembrete: fotos de ${g.title}`, ...body };

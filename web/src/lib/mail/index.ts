@@ -2,6 +2,7 @@
 import { appendFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { env } from "../env";
+import { DATA_DIR } from "../storage/disk";
 
 export type Mail = { to: string; subject: string; html: string; text: string; replyTo?: string };
 
@@ -16,7 +17,7 @@ export async function sendMail(m: Mail): Promise<void> {
     if (!res.ok) throw new Error(`Resend ${res.status}: ${(await res.text()).slice(0, 200)}`);
     return;
   }
-  const dir = join(process.cwd(), ".data");
+  const dir = DATA_DIR;
   await mkdir(dir, { recursive: true });
   await appendFile(join(dir, "outbox.jsonl"), JSON.stringify({ at: new Date().toISOString(), ...m }) + "\n");
 }

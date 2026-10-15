@@ -20,6 +20,11 @@ export function formatDate(isoOrDate: string | null, withTime = false) {
   });
 }
 
+/** Prazo para o cliente: sempre com o fuso escrito, porque ele pode estar em outro estado ou país. */
+export function formatDeadline(iso: string) {
+  return `${formatDate(iso, true)} (horário de Brasília)`;
+}
+
 function offsetMinutes(at: Date, tz: string) {
   const parts = Object.fromEntries(
     new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })

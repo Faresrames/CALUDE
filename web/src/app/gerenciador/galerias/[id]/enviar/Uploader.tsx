@@ -41,6 +41,12 @@ export function Uploader({ galleryId, watermark, startCount }: { galleryId: stri
           method: "POST", headers: { "content-type": "application/json" },
           body: JSON.stringify({ files: batch.map((b) => ({ name: b.name })) }),
         });
+        if (res.status === 401) {
+          // sessão expirou: para tudo e pede login (o resto da fila também falharia)
+          list.slice(i).forEach((b) => patch(b.id, { status: "error", error: "Sessão expirou: entre de novo" }));
+          toast("error", "Sua sessão expirou. Entre de novo e envie as fotos que faltaram.");
+          break;
+        }
         if (!res.ok) {
           batch.forEach((b) => patch(b.id, { status: "error", error: "Servidor recusou" }));
           continue;

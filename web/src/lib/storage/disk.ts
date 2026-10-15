@@ -3,7 +3,8 @@ import { dirname, join, normalize } from "node:path";
 import { sign, verify } from "../secret";
 import type { Storage } from "./index";
 
-export const DATA_DIR = join(process.cwd(), ".data");
+/** Pasta local (só desenvolvimento/testes). LOCAL_DATA_DIR permite isolar os testes. */
+export const DATA_DIR = process.env.LOCAL_DATA_DIR ?? join(process.cwd(), ".data");
 const ROOT = join(DATA_DIR, "storage");
 const MAX_BYTES = 8 * 1024 * 1024;
 

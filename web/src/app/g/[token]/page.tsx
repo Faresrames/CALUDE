@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isGalleryUnlocked } from "@/lib/auth";
 import { data } from "@/lib/data";
-import { formatBRL, formatDate } from "@/lib/format";
+import { formatBRL, formatDate, formatDeadline } from "@/lib/format";
 import { viewUrls } from "@/lib/storage";
 import { ClientGallery } from "./ClientGallery";
 import { UnlockForm } from "./UnlockForm";
@@ -31,7 +31,7 @@ export default async function ClientGalleryPage({ params }: { params: Promise<{ 
         <p className="text-sm text-muted">
           Escolha {g.packageSize} fotos para o seu pacote
           {g.allowExtras && g.extraPriceCents > 0 ? `; cada foto a mais custa ${formatBRL(g.extraPriceCents)}` : ""}.
-          {g.deadlineAt && !locked ? ` Prazo: ${formatDate(g.deadlineAt, true)}.` : ""}
+          {g.deadlineAt && !locked ? ` Prazo: ${formatDeadline(g.deadlineAt)}.` : ""}
         </p>
         <p className="text-sm text-muted">Toque no círculo para escolher, no coração para favoritar. Tudo é salvo na hora.</p>
       </header>

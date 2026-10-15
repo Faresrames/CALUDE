@@ -73,6 +73,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Títulos e caminhos com palavra muito longa quebram em vez de estourar a largura */
+h1, h2, h3, nav[aria-label="Caminho"] {
+  overflow-wrap: anywhere;
+}
+
 /* Foco visível e igual em tudo: 2px, cor de foco, afastado 2px. */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--c-focus);

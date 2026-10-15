@@ -25,7 +25,7 @@ export function GalleryCard(p: GalleryCardProps) {
       <div className="flex flex-col gap-2 p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="truncate font-semibold text-ink">{p.title}</h3>
+            <h2 className="truncate font-semibold text-ink">{p.title}</h2>
             <p className="truncate text-sm text-muted">{p.client} · {p.eventDate}</p>
           </div>
           <StatusBadge status={p.status} />

@@ -19,6 +19,12 @@ export function ExportPanel({ id, names, favorites }: { id: string; names: strin
         No Lightroom Classic: Biblioteca → barra de filtro → <strong className="text-ink">Texto</strong> →
         <strong className="text-ink"> Nome do arquivo</strong> → <strong className="text-ink">Contém</strong>, e cole a lista.
       </p>
+      {names.some((n) => n.includes(",")) && (
+        <p role="note" className="rounded-md bg-surface p-3 text-sm text-warning">
+          {names.filter((n) => n.includes(",")).length} {names.filter((n) => n.includes(",")).length === 1 ? "nome tem" : "nomes têm"} vírgula
+          ({names.filter((n) => n.includes(",")).slice(0, 3).join("; ")}) e o filtro do Lightroom vai separar errado. Renomeie esses arquivos ou use o CSV.
+        </p>
+      )}
       <label className="sr-only" htmlFor="export-list">Nomes das fotos escolhidas</label>
       <textarea id="export-list" readOnly rows={3} value={text}
         className="resize-y rounded-md border border-line-input bg-surface p-3 font-mono text-sm text-ink" />
