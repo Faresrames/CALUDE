@@ -1,0 +1,84 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/fraunces";
+@import "../styles/tokens.css";
+
+/* Tokens -> utilitários do Tailwind. Componentes usam só estes nomes
+   (bg-surface, text-muted, border-line…), nunca hex ou px soltos. */
+@theme inline {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-raised: var(--c-surface-raised);
+  --color-line: var(--c-border);
+  --color-line-input: var(--c-border-input);
+  --color-ink: var(--c-text);
+  --color-muted: var(--c-text-muted);
+  --color-accent: var(--c-accent);
+  --color-accent-hover: var(--c-accent-hover);
+  --color-on-accent: var(--c-on-accent);
+  --color-selected: var(--c-selected);
+  --color-on-selected: var(--c-on-selected);
+  --color-favorite: var(--c-favorite);
+  --color-favorite-dark: var(--c-favorite-on-dark);
+  --color-danger: var(--c-danger);
+  --color-on-danger: var(--c-on-danger);
+  --color-success: var(--c-success);
+  --color-warning: var(--c-warning);
+  --color-info: var(--c-info);
+  --color-focus: var(--c-focus);
+  --color-lightbox: var(--c-lightbox-bg);
+  --color-on-lightbox: var(--c-on-lightbox);
+  --color-on-lightbox-muted: var(--c-on-lightbox-muted);
+
+  --font-sans: "Inter Variable", var(--f-sans);
+  --font-display: "Fraunces Variable", var(--f-display);
+  --font-mono: var(--f-mono);
+
+  --text-xs: var(--t-xs-size);
+  --text-xs--line-height: var(--t-xs-line);
+  --text-sm: var(--t-sm-size);
+  --text-sm--line-height: var(--t-sm-line);
+  --text-base: var(--t-base-size);
+  --text-base--line-height: var(--t-base-line);
+  --text-lg: var(--t-lg-size);
+  --text-lg--line-height: var(--t-lg-line);
+  --text-xl: var(--t-xl-size);
+  --text-xl--line-height: var(--t-xl-line);
+  --text-display: var(--t-display-size);
+  --text-display--line-height: var(--t-display-line);
+
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-pill: var(--r-pill);
+
+  --shadow-card: var(--s-card);
+  --shadow-pop: var(--s-pop);
+
+  --ease-brand: var(--m-ease);
+  --container-content: var(--l-max-content);
+}
+
+html {
+  background: var(--c-bg);
+  color: var(--c-text);
+}
+body {
+  font-family: var(--font-sans);
+  font-size: var(--t-base-size);
+  line-height: var(--t-base-line);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Foco visível e igual em tudo: 2px, cor de foco, afastado 2px. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0ms !important; animation-duration: 0ms !important; }
+}
