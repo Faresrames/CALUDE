@@ -1,43 +1,20 @@
-// Armazenamento FALSO no disco (web/.data/storage), imitando o Cloudflare R2:
-// o navegador recebe URLs assinadas para enviar (PUT) e para ver (GET), com validade.
-// /replica-backend troca por URLs assinadas do R2 sem mudar quem chama.
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, join, normalize } from "node:path";
-import { DATA_DIR } from "../data/fake";
-import { sign, verify } from "../secret";
+// Arquivos das fotos. Produção: Cloudflare R2 (API S3) com URLs assinadas.
+// Desenvolvimento: disco (web/.data/storage) imitando as mesmas URLs assinadas.
+import { env } from "../env";
+import { diskStorage } from "./disk";
+import { r2Storage } from "./r2";
 
-const ROOT = join(DATA_DIR, "storage");
-const MAX_BYTES = 8 * 1024 * 1024; // prévia de 1600px fica bem abaixo disso
-
-function safePath(key: string) {
-  const p = normalize(join(ROOT, key));
-  if (!p.startsWith(ROOT + "/") || !/^[\w\-/.]+$/.test(key) || key.includes("..")) throw new Error("bad key");
-  return p;
-}
-
-function signedUrl(method: "GET" | "PUT", key: string, ttlSeconds: number) {
-  const exp = Math.floor(Date.now() / 1000) + ttlSeconds;
-  const sig = sign(`${method}:${key}:${exp}`);
-  return `/api/dev-storage/${key}?exp=${exp}&sig=${sig}`;
-}
-
-export const storage = {
-  uploadUrl: (key: string) => signedUrl("PUT", key, 15 * 60),
-  viewUrl: (key: string) => signedUrl("GET", key, 60 * 60),
-
-  check(method: "GET" | "PUT", key: string, exp: string | null, sig: string | null) {
-    const e = Number(exp);
-    return Number.isFinite(e) && e > Date.now() / 1000 && verify(`${method}:${key}:${e}`, sig);
-  },
-
-  async put(key: string, body: Buffer) {
-    if (body.length > MAX_BYTES) throw new Error("too_large");
-    const p = safePath(key);
-    await mkdir(dirname(p), { recursive: true });
-    await writeFile(p, body);
-  },
-
-  async get(key: string) {
-    return readFile(safePath(key));
-  },
+export type Storage = {
+  /** URL para o navegador enviar (PUT) o arquivo direto, válida por 15 min. */
+  uploadUrl(key: string, contentType: string): Promise<string>;
+  /** URL para ver o arquivo, válida por 1 h. */
+  viewUrl(key: string): Promise<string>;
+  delete(keys: string[]): Promise<void>;
 };
+
+export const storage: Storage = new Proxy({} as Storage, {
+  get: (_t, prop: keyof Storage) => (env.storage === "r2" ? r2Storage() : diskStorage)[prop],
+});
+
+/** Várias URLs de uma vez, na mesma ordem. */
+export const viewUrls = (keys: string[]) => Promise.all(keys.map((k) => storage.viewUrl(k)));

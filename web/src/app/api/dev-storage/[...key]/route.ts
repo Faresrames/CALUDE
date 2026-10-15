@@ -1,9 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { storage } from "@/lib/storage";
+import { diskStorage as storage } from "@/lib/storage/disk";
+import { env } from "@/lib/env";
 
 const types: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", svg: "image/svg+xml", webp: "image/webp" };
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ key: string[] }> }) {
+  if (env.storage !== "disk") return new NextResponse("not found", { status: 404 });
   const key = (await params).key.join("/");
   const q = req.nextUrl.searchParams;
   if (!storage.check("GET", key, q.get("exp"), q.get("sig"))) return new NextResponse("forbidden", { status: 403 });
@@ -22,6 +24,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ key:
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ key: string[] }> }) {
+  if (env.storage !== "disk") return new NextResponse("not found", { status: 404 });
   const key = (await params).key.join("/");
   const q = req.nextUrl.searchParams;
   if (!storage.check("PUT", key, q.get("exp"), q.get("sig"))) return new NextResponse("forbidden", { status: 403 });

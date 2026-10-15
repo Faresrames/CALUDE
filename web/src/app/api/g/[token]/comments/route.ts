@@ -1,5 +1,6 @@
-import { clientGallery, fail, handle } from "@/lib/api";
+import { body, clientGallery, fail, handle, rateLimited } from "@/lib/api";
 import { data } from "@/lib/data";
+import { commentBody } from "@/lib/schemas";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ token: string }> }) {
   const g = await clientGallery((await params).token);
@@ -10,7 +11,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
 export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
   const g = await clientGallery((await params).token);
   if (!g) return fail("not_found");
-  const body = (await req.json().catch(() => ({}))) as { photoId?: string | null; body?: string };
-  if (typeof body.body !== "string") return fail("invalid");
-  return handle(() => data.addComment(g.id, { photoId: body.photoId ?? null, author: "client", body: body.body! }));
+  if (rateLimited(`comment:${g.id}`, 30, 60_000)) return fail("invalid", "Muitos comentários seguidos. Espere um pouco.");
+  const b = await body(req, commentBody);
+  if (!b) return fail("invalid");
+  return handle(() => data.addComment(g.id, { photoId: b.photoId ?? null, author: "client", body: b.body }));
 }

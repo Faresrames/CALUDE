@@ -5,7 +5,7 @@ import { PhotoTile } from "@/components/ui/PhotoTile";
 import { clientGallery } from "@/lib/api";
 import { data } from "@/lib/data";
 import { formatBRL } from "@/lib/format";
-import { storage } from "@/lib/storage";
+import { viewUrls } from "@/lib/storage";
 import { SubmitButton } from "./SubmitButton";
 
 export const metadata: Metadata = { title: "Revisar seleção", robots: { index: false } };
@@ -20,6 +20,7 @@ export default async function RevisarPage({ params }: { params: Promise<{ token:
   const chosen = new Set(selections.filter((s) => s.selected).map((s) => s.photoId));
   const fav = new Set(selections.filter((s) => s.favorited).map((s) => s.photoId));
   const list = photos.filter((p) => chosen.has(p.id));
+  const thumbs = await viewUrls(list.map((p) => p.thumbKey));
   const extras = Math.max(0, list.length - g.packageSize);
   const missing = Math.max(0, g.packageSize - list.length);
 
@@ -50,8 +51,8 @@ export default async function RevisarPage({ params }: { params: Promise<{ token:
       </section>
 
       <ul className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2 sm:grid-cols-[repeat(auto-fill,minmax(140px,1fr))]">
-        {list.map((p) => (
-          <li key={p.id}><PhotoTile src={storage.viewUrl(p.thumbKey)} name={p.basename} selected favorited={fav.has(p.id)} readOnly /></li>
+        {list.map((p, i) => (
+          <li key={p.id}><PhotoTile src={thumbs[i]} name={p.basename} selected favorited={fav.has(p.id)} readOnly /></li>
         ))}
       </ul>
     </main>

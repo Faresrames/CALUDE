@@ -8,8 +8,56 @@ export type Photographer = {
   businessName: string | null;
   email: string;
   watermarkText: string | null;
+  pixKey: string | null;
+  pixKeyType: "cpf" | "cnpj" | "email" | "phone" | "random" | null;
+  pixMerchantName: string | null;
+  pixMerchantCity: string | null;
   createdAt: string;
 };
+
+export type PhotographerPatch = Partial<Pick<Photographer,
+  "name" | "businessName" | "watermarkText" | "pixKey" | "pixKeyType" | "pixMerchantName" | "pixMerchantCity">>;
+
+export type Order = {
+  id: string;
+  galleryId: string;
+  photographerId: string;
+  extrasCount: number;
+  unitPriceCents: number;
+  amountCents: number;
+  currency: "BRL";
+  method: "pix_manual" | "pix" | "card";
+  status: "pending" | "paid" | "expired" | "canceled" | "refunded";
+  paidAt: string | null;
+  createdAt: string;
+};
+
+export type Plan = "trial" | "starter" | "pro" | "studio";
+export type Subscription = {
+  photographerId: string;
+  plan: Plan;
+  status: "trialing" | "active" | "past_due" | "canceled";
+  trialEndsAt: string;
+  currentPeriodEnd: string | null;
+  provider: "asaas" | null;
+  providerCustomerId: string | null;
+  providerSubscriptionId: string | null;
+};
+
+export type ReminderTarget = {
+  galleryId: string;
+  title: string;
+  accessToken: string;
+  deadlineAt: string | null;
+  clientName: string | null;
+  clientEmail: string;
+  studioName: string;
+  kind: "reminder" | "deadline_tomorrow";
+};
+
+export type ExpiredGallery = { galleryId: string; title: string; photographerEmail: string; clientName: string | null };
+
+export type NotificationKind = "gallery_sent" | "reminder" | "deadline_tomorrow" | "submitted" | "order_paid" | "album_ready" | "delivered" | "expired";
 
 export type Client = {
   id: string;
@@ -81,6 +129,7 @@ export type Comment = {
 
 export type GallerySummary = Gallery & {
   clientName: string | null;
+  clientEmail: string | null;
   photoCount: number;
   selectedCount: number;
   coverKey: string | null;
@@ -119,6 +168,7 @@ export type DataErrorCode =
   | "gallery_expired"
   | "package_full"
   | "comments_off"
+  | "plan_inactive"
   | "invalid";
 
 export class DataError extends Error {
@@ -129,8 +179,13 @@ export class DataError extends Error {
 
 /** O contrato que a camada real (Supabase) vai implementar no /replica-backend. */
 export interface DataLayer {
-  findOrCreatePhotographer(email: string, name: string): Promise<Photographer>;
+  /** Cria o perfil (e o teste de 14 dias) no primeiro login; depois só devolve. */
+  ensurePhotographer(id: string, email: string, name: string): Promise<Photographer>;
   getPhotographer(id: string): Promise<Photographer | null>;
+  getPhotographerByEmail(email: string): Promise<Photographer | null>;
+  updatePhotographer(id: string, patch: PhotographerPatch): Promise<Photographer>;
+  /** Apaga a conta e tudo dela. Devolve as chaves de arquivos para apagar no storage. */
+  deletePhotographer(id: string): Promise<string[]>;
 
   listGalleries(photographerId: string, opts?: { q?: string; status?: GalleryStatus }): Promise<GallerySummary[]>;
   createGallery(photographerId: string, input: NewGalleryInput): Promise<Gallery>;
@@ -147,8 +202,25 @@ export interface DataLayer {
 
   listSelections(galleryId: string): Promise<Selection[]>;
   setSelection(galleryId: string, photoId: string, patch: { selected?: boolean; favorited?: boolean }): Promise<SelectionState>;
-  submitSelection(galleryId: string): Promise<{ total: number; inPackage: number; extras: number; extrasCents: number }>;
+  /** Finaliza; se houver extras, cria o pedido de pagamento na mesma transação. */
+  submitSelection(galleryId: string): Promise<{ total: number; inPackage: number; extras: number; extrasCents: number; order: Order | null }>;
   exportSelection(photographerId: string, galleryId: string): Promise<{ basenames: string[]; favorites: string[] }>;
+
+  getOrderForGallery(galleryId: string): Promise<Order | null>;
+  confirmOrder(photographerId: string, orderId: string): Promise<Order>;
+  expireStaleOrders(olderThanHours: number): Promise<number>;
+
+  getSubscription(photographerId: string): Promise<Subscription>;
+  linkSubscription(photographerId: string, plan: Plan, customerId: string, subscriptionId: string): Promise<void>;
+  updateSubscriptionByProvider(providerSubscriptionId: string, patch: Partial<Pick<Subscription, "status" | "plan" | "currentPeriodEnd">>): Promise<Subscription | null>;
+  /** true se o evento é novo; false se já foi processado (webhook repetido). */
+  recordWebhookEvent(provider: string, eventId: string, type: string): Promise<boolean>;
+
+  reminderTargets(now: Date): Promise<ReminderTarget[]>;
+  expireOverdueGalleries(now: Date): Promise<ExpiredGallery[]>;
+  /** Registra um envio; false se já houve um igual hoje (não manda de novo). */
+  claimNotification(galleryId: string, kind: NotificationKind, channel: "email", recipient: string): Promise<string | null>;
+  finishNotification(id: string, error: string | null): Promise<void>;
 
   listComments(galleryId: string): Promise<Comment[]>;
   addComment(galleryId: string, input: { photoId: string | null; author: Comment["author"]; body: string }): Promise<Comment>;

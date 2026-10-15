@@ -1,27 +1,25 @@
 # Build log
 
-Dados: camada FALSA (`web/src/lib/data/fake.ts`, arquivo `web/.data/db.json`) e
-armazenamento FALSO (`web/src/lib/storage`, disco com URLs assinadas, imitando o R2).
-Mesmas funções do contrato `DataLayer`: o /replica-backend troca a implementação
-sem mexer nas telas. Telas conferidas em 1440px e 390px; prints em `replica/clone-screens/`.
+Dados: Postgres desde o /replica-backend (antes: camada falsa em arquivo, removida).
+Armazenamento: R2 em produção, disco local em desenvolvimento. Ver `replica/backend.md`. Telas conferidas em 1440px e 390px; prints em `replica/clone-screens/`.
 
 | ID | data | estado | o que falta | o que deu mais trabalho |
 | --- | --- | --- | --- | --- |
-| S01 | 2026-10-15 | partial | login de verdade (Supabase: e-mail + Google) | — |
+| S01 | 2026-10-15 | done | testar com o Supabase real | — |
 | S02 | 2026-10-15 | done | — | cartão estourava a largura no celular com título longo (corrigido) |
 | S03 | 2026-10-15 | done | escolher pastas/momentos | prazo "até 23:59 de Brasília" sem fixar o fuso no código |
 | S04 | 2026-10-15 | done | escolher pasta por lote; aceitar HEIC | redução + marca d'água no navegador (Web Worker + OffscreenCanvas); exige Safari 16.4+ |
 | S05 | 2026-10-15 | done | responder comentário; marcar "sugestão" | — |
 | S06 | 2026-10-15 | done (dentro de S05) | conferir o filtro "Contém" num Lightroom de verdade | — |
 | S07 | 2026-10-15 | stub | lista de clientes | — |
-| S08 | 2026-10-15 | stub | marca d'água PNG, logo, chave PIX, e-mails | — |
+| S08 | 2026-10-15 | partial | marca d'água PNG, logo | chave PIX validada por tipo; apagar conta com confirmação |
 | S09 | 2026-10-15 | stub | aprovação de álbum (fotógrafo) | — |
-| S10 | 2026-10-15 | stub | plano e assinatura (Asaas) | — |
+| S10 | 2026-10-15 | done | testar no sandbox do Asaas; preços finais | Asaas pede CPF/CNPJ para cobrar |
 | S11 | 2026-10-15 | done | — | — |
 | S12 | 2026-10-15 | done | — | imagem carregava antes da hidratação e ficava invisível (corrigido no design) |
 | S13 | 2026-10-15 | done | — | — |
 | S14 | 2026-10-15 | done | — | — |
-| S15 | 2026-10-15 | stub | PIX (BR Code) e confirmação pelo fotógrafo | — |
+| S15 | 2026-10-15 | done | confirmação automática (v2) | BR Code conferido contra o exemplo do Banco Central |
 | S16 | 2026-10-15 | done | — | — |
 | S17 | 2026-10-15 | stub | aprovação de álbum (cliente) | — |
 | S18 | 2026-10-15 | stub | entrega final com zip | — |
@@ -52,3 +50,11 @@ Fotógrafo (1440px) e cliente (390px):
 - nenhuma tela com rolagem lateral em 390px.
 Não testado ainda: prazo vencido de ponta a ponta (a regra é a mesma do banco,
 validada no schema), leitor de tela (axe) e Safari.
+
+## /replica-backend (2026-10-15)
+
+- Camada falsa trocada por Postgres; 16 testes de integração; ponta a ponta repetido no Postgres.
+- Bugs achados pelos testes: numeração das fotos pulava quando o lote tinha nomes repetidos;
+  e-mail aparecia na URL depois do pedido de link de login; `audit fix` atualizou o supabase-js
+  e quebrou os tipos do @supabase/ssr (atualizado para 0.12.7).
+- Não testado sem as contas: Supabase Auth real, R2, Resend, Asaas (ver `replica/backend.md`).

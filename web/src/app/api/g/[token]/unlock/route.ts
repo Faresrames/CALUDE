@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { fail, rateLimited } from "@/lib/api";
+import { body, fail, rateLimited } from "@/lib/api";
+import { unlockBody } from "@/lib/schemas";
 import { unlockGallery } from "@/lib/auth";
 import { data } from "@/lib/data";
 import { checkPassword } from "@/lib/data/password";
@@ -13,7 +14,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   }
   const g = await data.getGalleryByToken(token);
   if (!g || g.status === "draft") return fail("not_found");
-  const { password } = (await req.json().catch(() => ({}))) as { password?: string };
+  const b = await body(req, unlockBody);
+  if (!b) return fail("invalid");
+  const { password } = b;
   if (g.passwordHash && !(password && checkPassword(password, g.passwordHash))) {
     return NextResponse.json({ error: "wrong_password", message: "Senha incorreta." }, { status: 401 });
   }

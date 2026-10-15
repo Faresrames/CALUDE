@@ -1,16 +1,18 @@
 "use client";
 import { clsx } from "clsx";
-import { Check, Copy, QrCode } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 import { formatBRL } from "./SelectionCounter";
 
 export type PixStatus = "pending" | "paid" | "expired";
 
-/** Pagamento das fotos extras por PIX. O QR real entra no /replica-build (lib de QR a partir do payload). */
-export function PixPanel({ amountCents, extras, payload, status, photographerName }: {
+/** Pagamento das fotos extras por PIX (QR + copia e cola). */
+export function PixPanel({ amountCents, extras, payload, qrSrc, status, photographerName }: {
   amountCents: number;
   extras: number;
   payload: string;
+  /** data URL do QR em SVG, gerado no servidor a partir do payload */
+  qrSrc?: string;
   status: PixStatus;
   photographerName: string;
 }) {
@@ -24,9 +26,10 @@ export function PixPanel({ amountCents, extras, payload, status, photographerNam
       </div>
       {status === "pending" && (
         <>
-          <div className="grid aspect-square w-44 place-items-center self-center rounded-md border border-line bg-surface text-muted">
-            <QrCode aria-label="QR Code do PIX" className="size-24" />
-          </div>
+          {qrSrc && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={qrSrc} alt="QR Code do PIX" className="aspect-square w-52 self-center rounded-md border border-line bg-on-accent p-2" />
+          )}
           <div className="flex gap-2">
             <input readOnly value={payload} aria-label="PIX copia e cola"
               className="h-10 min-w-0 flex-1 rounded-md border border-line-input bg-surface px-3 font-mono text-xs text-ink" />

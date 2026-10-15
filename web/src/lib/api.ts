@@ -1,4 +1,6 @@
+import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import type { z } from "zod";
 import { currentPhotographer, isGalleryUnlocked } from "./auth";
 import { data, DataError, type DataErrorCode } from "./data";
 
@@ -8,6 +10,7 @@ const messages: Record<DataErrorCode, [number, string]> = {
   gallery_expired: [409, "O prazo para escolher terminou. Fale com o fotógrafo para estender."],
   package_full: [409, "O pacote está completo. Desmarque uma foto para escolher outra."],
   comments_off: [403, "Comentários desligados nesta galeria."],
+  plan_inactive: [402, "Seu período de teste acabou. Escolha um plano para criar galerias novas."],
   invalid: [400, "Dados inválidos."],
 };
 
@@ -50,4 +53,19 @@ export function rateLimited(key: string, max: number, windowMs: number) {
   list.push(t);
   hits.set(key, list);
   return list.length > max;
+}
+
+/** Lê e valida o JSON do corpo. null se inválido. */
+export async function body<T>(req: Request, schema: z.ZodType<T>): Promise<T | null> {
+  const raw = await req.json().catch(() => undefined);
+  const r = schema.safeParse(raw);
+  return r.success ? r.data : null;
+}
+
+/** Comparação de segredos sem vazar tempo. */
+export function sameSecret(a: string | null | undefined, b: string | null | undefined) {
+  if (!a || !b) return false;
+  const x = Buffer.from(a);
+  const y = Buffer.from(b);
+  return x.length === y.length && timingSafeEqual(x, y);
 }

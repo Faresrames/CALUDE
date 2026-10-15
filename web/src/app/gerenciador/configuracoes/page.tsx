@@ -1,7 +1,15 @@
-import { Stub } from "@/components/app/Stub";
+import type { Metadata } from "next";
+import { requirePhotographer } from "@/lib/auth";
+import { SettingsForms } from "./SettingsForms";
 
-export const metadata = { title: "Configurações" };
+export const metadata: Metadata = { title: "Configurações" };
 
-export default function Page() {
-  return <Stub id="S08" title="Configurações">Marca d’água (texto ou PNG), logo, chave PIX para as extras e os e-mails de aviso.</Stub>;
+export default async function ConfiguracoesPage() {
+  const p = await requirePhotographer();
+  return (
+    <div className="flex flex-col gap-6">
+      <h1 className="font-display text-xl text-ink">Configurações</h1>
+      <SettingsForms p={p} />
+    </div>
+  );
 }

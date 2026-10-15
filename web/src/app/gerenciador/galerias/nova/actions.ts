@@ -1,7 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { requirePhotographer } from "@/lib/auth";
-import { data } from "@/lib/data";
+import { data, DataError } from "@/lib/data";
 import { endOfDayInTZ, parseBRL } from "@/lib/format";
 
 export type NewGalleryState = { errors: Partial<Record<"title" | "clientName" | "packageSize" | "extraPrice" | "deadline" | "password", string>>; values?: Record<string, string> };
@@ -29,10 +29,18 @@ export async function createGalleryAction(_prev: NewGalleryState, form: FormData
 
   if (Object.keys(errors).length) return { errors, values: Object.fromEntries([...form.entries()].map(([k, x]) => [k, String(x)])) };
 
-  const g = await data.createGallery(p.id, {
+  let g;
+  try {
+    g = await data.createGallery(p.id, {
     title, eventDate: v("eventDate") || null, clientName, clientEmail: v("clientEmail") || null, packageSize,
     allowExtras, extraPriceCents: extraPriceCents ?? 0, deadlineAt, password: password || null,
     allowComments: v("allowComments") === "on", watermarkOn: v("watermarkOn") === "on",
-  });
+    });
+  } catch (e) {
+    if (e instanceof DataError && e.code === "plan_inactive") {
+      return { errors: { title: "Seu teste grátis acabou. Escolha um plano em Plano para criar galerias novas." }, values: Object.fromEntries([...form.entries()].map(([k, x]) => [k, String(x)])) };
+    }
+    throw e;
+  }
   redirect(`/gerenciador/galerias/${g.id}/enviar`);
 }

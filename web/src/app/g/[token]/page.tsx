@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { isGalleryUnlocked } from "@/lib/auth";
 import { data } from "@/lib/data";
 import { formatBRL, formatDate } from "@/lib/format";
-import { storage } from "@/lib/storage";
+import { viewUrls } from "@/lib/storage";
 import { ClientGallery } from "./ClientGallery";
 import { UnlockForm } from "./UnlockForm";
 
@@ -20,6 +20,7 @@ export default async function ClientGalleryPage({ params }: { params: Promise<{ 
   await data.markOpened(g.id);
   const [photos, selections, comments] = await Promise.all([data.listPhotos(g.id), data.listSelections(g.id), data.listComments(g.id)]);
   const sel = new Map(selections.map((s) => [s.photoId, s]));
+  const [thumbs, previews] = await Promise.all([viewUrls(photos.map((p) => p.thumbKey)), viewUrls(photos.map((p) => p.previewKey))]);
   const locked = g.status === "submitted" || g.status === "delivered" ? "submitted" : g.status === "expired" ? "expired" : null;
 
   return (
@@ -37,8 +38,8 @@ export default async function ClientGalleryPage({ params }: { params: Promise<{ 
       <ClientGallery token={token} locked={locked} packageSize={g.packageSize} allowExtras={g.allowExtras}
         extraPriceCents={g.extraPriceCents} allowComments={g.allowComments} clientName={g.clientName ?? "Você"}
         initialCount={g.selectedCount}
-        photos={photos.map((p) => ({
-          id: p.id, name: p.basename, folder: p.folder, thumb: storage.viewUrl(p.thumbKey), preview: storage.viewUrl(p.previewKey),
+        photos={photos.map((p, i) => ({
+          id: p.id, name: p.basename, folder: p.folder, thumb: thumbs[i], preview: previews[i],
           pick: p.photographerPick, selected: !!sel.get(p.id)?.selected, favorited: !!sel.get(p.id)?.favorited,
         }))}
         comments={comments.map((c) => ({ id: c.id, photoId: c.photoId, author: c.author, body: c.body, at: formatDate(c.createdAt, true) }))} />

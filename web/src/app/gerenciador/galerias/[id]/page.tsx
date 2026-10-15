@@ -5,9 +5,10 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { requirePhotographer } from "@/lib/auth";
 import { data } from "@/lib/data";
 import { dateInputValue, formatBRL, formatDate } from "@/lib/format";
-import { storage } from "@/lib/storage";
+import { viewUrls } from "@/lib/storage";
 import { ExportPanel } from "./ExportPanel";
 import { GalleryActions } from "./GalleryActions";
+import { OrderPanel } from "./OrderPanel";
 import { PhotoBrowser } from "./PhotoBrowser";
 
 export const metadata: Metadata = { title: "Galeria" };
@@ -16,10 +17,11 @@ export default async function GaleriaPage({ params }: { params: Promise<{ id: st
   const p = await requirePhotographer();
   const g = await data.getGallery(p.id, (await params).id);
   if (!g) notFound();
-  const [photos, selections, comments, exported] = await Promise.all([
-    data.listPhotos(g.id), data.listSelections(g.id), data.listComments(g.id), data.exportSelection(p.id, g.id),
+  const [photos, selections, comments, exported, order] = await Promise.all([
+    data.listPhotos(g.id), data.listSelections(g.id), data.listComments(g.id), data.exportSelection(p.id, g.id), data.getOrderForGallery(g.id),
   ]);
   const sel = new Map(selections.map((s) => [s.photoId, s]));
+  const [thumbs, previews] = await Promise.all([viewUrls(photos.map((p) => p.thumbKey)), viewUrls(photos.map((p) => p.previewKey))]);
   const extras = Math.max(0, g.selectedCount - g.packageSize);
   const stats = [
     { label: "Fotos", value: String(g.photoCount) },
@@ -61,6 +63,8 @@ export default async function GaleriaPage({ params }: { params: Promise<{ id: st
       </dl>
       {timeline.length > 0 && <p className="text-sm text-muted">{timeline.join(" · ")}</p>}
 
+      {order && <OrderPanel id={order.id} extras={order.extrasCount} amountCents={order.amountCents} status={order.status} hasPixKey={!!p.pixKey} />}
+
       {exported.basenames.length > 0 && <ExportPanel id={g.id} names={exported.basenames} favorites={exported.favorites} />}
 
       {photos.length === 0 ? (
@@ -70,8 +74,8 @@ export default async function GaleriaPage({ params }: { params: Promise<{ id: st
           <Link href={`/gerenciador/galerias/${g.id}/enviar`} className="mt-4 inline-flex h-10 items-center rounded-md bg-accent px-4 text-sm font-semibold text-on-accent">Subir fotos</Link>
         </div>
       ) : (
-        <PhotoBrowser clientName={g.clientName ?? "Cliente"} photos={photos.map((ph) => ({
-          id: ph.id, name: ph.basename, thumb: storage.viewUrl(ph.thumbKey), preview: storage.viewUrl(ph.previewKey),
+        <PhotoBrowser clientName={g.clientName ?? "Cliente"} photos={photos.map((ph, i) => ({
+          id: ph.id, name: ph.basename, thumb: thumbs[i], preview: previews[i],
           selected: !!sel.get(ph.id)?.selected, favorited: !!sel.get(ph.id)?.favorited, pick: ph.photographerPick,
           comments: comments.filter((c) => c.photoId === ph.id).map((c) => ({ id: c.id, author: c.author, body: c.body, at: formatDate(c.createdAt, true) })),
         }))} />

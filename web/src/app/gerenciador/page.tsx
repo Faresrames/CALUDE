@@ -26,6 +26,7 @@ export default async function GerenciadorPage({ searchParams }: { searchParams: 
   const valid = filters.some((f) => f.value === status) ? (status as GalleryStatus | "") : "";
   const galleries = await data.listGalleries(p.id, { q, status: valid || undefined });
   const filtering = !!q || !!valid;
+  const covers = await Promise.all(galleries.map((g) => (g.coverKey ? storage.viewUrl(g.coverKey) : undefined)));
 
   return (
     <div className="flex flex-col gap-6">
@@ -75,10 +76,10 @@ export default async function GerenciadorPage({ searchParams }: { searchParams: 
         )
       ) : (
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {galleries.map((g) => (
+          {galleries.map((g, i) => (
             <li key={g.id} className="min-w-0">
               <GalleryCard href={`/gerenciador/galerias/${g.id}`} title={g.title} client={g.clientName ?? "Sem cliente"}
-                eventDate={formatDate(g.eventDate)} cover={g.coverKey ? storage.viewUrl(g.coverKey) : undefined}
+                eventDate={formatDate(g.eventDate)} cover={covers[i]}
                 status={g.status} photos={g.photoCount} selected={g.selectedCount} packageSize={g.packageSize}
                 deadline={g.deadlineAt ? formatDate(g.deadlineAt, true) : undefined} />
             </li>
