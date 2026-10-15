@@ -1,4 +1,5 @@
 import { CalendarClock, Images } from "lucide-react";
+import Link from "next/link";
 import { StatusBadge, type GalleryStatus } from "./StatusBadge";
 
 export type GalleryCardProps = {
@@ -16,10 +17,10 @@ export type GalleryCardProps = {
 
 export function GalleryCard(p: GalleryCardProps) {
   return (
-    <a href={p.href} className="group flex flex-col overflow-hidden rounded-lg border border-line bg-raised shadow-card transition-shadow hover:shadow-pop">
-      <div className="aspect-[3/2] bg-surface">
+    <Link href={p.href} className="group flex flex-col overflow-hidden rounded-lg border border-line bg-raised shadow-card transition-shadow hover:shadow-pop">
+      <div className="relative aspect-[3/2] overflow-hidden bg-surface">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {p.cover && <img src={p.cover} alt="" className="size-full object-cover" />}
+        {p.cover && <img src={p.cover} alt="" className="absolute inset-0 size-full object-cover" />}
       </div>
       <div className="flex flex-col gap-2 p-4">
         <div className="flex items-start justify-between gap-2">
@@ -39,6 +40,6 @@ export function GalleryCard(p: GalleryCardProps) {
           </p>
         )}
       </div>
-    </a>
+    </Link>
   );
 }

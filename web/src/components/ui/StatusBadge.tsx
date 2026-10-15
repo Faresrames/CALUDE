@@ -15,7 +15,7 @@ const map: Record<GalleryStatus, { label: string; className: string }> = {
 export function StatusBadge({ status }: { status: GalleryStatus }) {
   const s = map[status];
   return (
-    <span className={clsx("inline-flex h-6 items-center rounded-pill border bg-raised px-2.5 text-xs", s.className)}>
+    <span className={clsx("inline-flex h-6 shrink-0 items-center whitespace-nowrap rounded-pill border bg-raised px-2.5 text-xs", s.className)}>
       {s.label}
     </span>
   );

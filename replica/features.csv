@@ -1,31 +1,31 @@
 feature,area,priority,original,clone,notes
-Cadastro e login do fotógrafo,conta,must,yes,no,[3]
-Criar galeria com cliente titulo e data,galerias,must,yes,no,[1]
-Upload em massa de fotos com progresso,galerias,must,yes,no,[1] milhares de fotos por evento
-Miniaturas e versões leves geradas no servidor,galerias,must,yes,no,inferido; necessário para abrir rápido no celular
-Marca d'água personalizada,galerias,must,yes,no,[1][5]
-Link privado com senha para o cliente,acesso,must,yes,no,[10]
-Grade de fotos do cliente com marcar e desmarcar,seleção,must,yes,no,[1]
-Contador de fotos do pacote (X de Y),seleção,must,yes,no,[7] inferido no Select
-Seleção salva automaticamente,seleção,must,yes,no,inferido; cliente volta depois
-Finalizar e enviar seleção (trava a galeria),seleção,must,yes,no,[5]
-Prazo por galeria que trava a seleção,seleção,must,yes,no,[1][5]
-Painel do fotógrafo com status de cada galeria,gerenciador,must,yes,no,inferido do nome /gerenciador
-Exportar nomes das fotos escolhidas para o Lightroom,entrega,must,yes,no,[5][6]
-Favoritar fotos,seleção,should,yes,no,[1]
-Comentário por foto,seleção,should,yes,no,[1]
-Venda de fotos extras com preço por foto,vendas,should,yes,no,[7][9] confirmar se o Select faz
-Pagamento de extras por PIX,vendas,should,unknown,no,[7] confirmar no Select
+Cadastro e login do fotógrafo,conta,must,yes,partial,[3] | clone: login de demonstração sem senha; Supabase Auth no /replica-backend
+Criar galeria com cliente titulo e data,galerias,must,yes,yes,[1]
+Upload em massa de fotos com progresso,galerias,must,yes,yes,"[1] milhares de fotos por evento | clone: lotes de 50, 2-4 workers, retomada pulando nomes repetidos"
+Miniaturas e versões leves geradas no servidor,galerias,must,yes,yes,"inferido; necessário para abrir rápido no celular | clone: geradas no navegador (1600px e 400px), não no servidor: decisão do architect"
+Marca d'água personalizada,galerias,must,yes,partial,"[1][5] | clone: texto em diagonal com o nome do estúdio; falta PNG, opacidade e posição em S08"
+Link privado com senha para o cliente,acesso,must,yes,yes,[10] | clone: token no link + senha opcional + 5 tentativas/min
+Grade de fotos do cliente com marcar e desmarcar,seleção,must,yes,yes,[1]
+Contador de fotos do pacote (X de Y),seleção,must,yes,yes,[7] inferido no Select | clone: número confirmado pelo servidor
+Seleção salva automaticamente,seleção,must,yes,yes,inferido; cliente volta depois | clone: cada clique salva; desfaz e avisa se falhar
+Finalizar e enviar seleção (trava a galeria),seleção,must,yes,yes,[5]
+Prazo por galeria que trava a seleção,seleção,must,yes,yes,[1][5] | clone: vence na leitura; job do cron no /replica-backend
+Painel do fotógrafo com status de cada galeria,gerenciador,must,yes,yes,inferido do nome /gerenciador | clone: busca e filtro por status
+Exportar nomes das fotos escolhidas para o Lightroom,entrega,must,yes,yes,[5][6] | clone: lista separada por vírgula + CSV; conferir o filtro Contém num Lightroom real
+Favoritar fotos,seleção,should,yes,yes,[1]
+Comentário por foto,seleção,should,yes,yes,[1] | clone: cliente comenta; fotógrafo lê (responder ainda não)
+Venda de fotos extras com preço por foto,vendas,should,yes,partial,[7][9] confirmar se o Select faz | clone: calcula e mostra o valor; cobrança ainda não
+Pagamento de extras por PIX,vendas,should,unknown,no,[7] confirmar no Select | clone: S15 é tela reservada
 Pagamento de extras por cartão,vendas,should,unknown,no,[7] confirmar no Select
-Lembretes automáticos de prazo ao cliente,notificações,should,yes,no,[1][4]
-Aviso ao fotógrafo quando a seleção é enviada,notificações,should,yes,no,inferido
-Bloqueio de botão direito e download na galeria,acesso,should,yes,no,[1] anti-cópia limitado no navegador
-Aprovação de álbum com comentários na lâmina,álbum,should,yes,no,[1]
+Lembretes automáticos de prazo ao cliente,notificações,should,yes,no,[1][4] | clone: precisa de e-mail (Resend) e cron
+Aviso ao fotógrafo quando a seleção é enviada,notificações,should,yes,partial,inferido | clone: aparece no painel; e-mail ainda não
+Bloqueio de botão direito e download na galeria,acesso,should,yes,yes,[1] anti-cópia limitado no navegador | clone: botão direito e arrastar bloqueados + marca d'água
+Aprovação de álbum com comentários na lâmina,álbum,should,yes,no,[1] | clone: S09/S17 reservadas
 Versões do álbum com histórico de alterações,álbum,should,yes,no,[1]
-Funciona bem no celular,cliente,should,yes,no,[1]
-Teste grátis de 14 dias e planos,saas,should,yes,no,[1] necessário para vender
-Favoritas sugeridas pelo fotógrafo,seleção,could,no,no,[4] ideia do concorrente
-Pastas por momento do evento,galerias,could,unknown,no,[4]
+Funciona bem no celular,cliente,should,yes,yes,[1] | clone: todas as telas sem rolagem lateral em 390px
+Teste grátis de 14 dias e planos,saas,should,yes,no,[1] necessário para vender | clone: S10 reservada; Asaas no backend
+Favoritas sugeridas pelo fotógrafo,seleção,could,no,partial,[4] ideia do concorrente | clone: etiqueta Sugestão aparece; falta o fotógrafo marcar
+Pastas por momento do evento,galerias,could,unknown,partial,[4] | clone: cliente filtra por momento; falta escolher a pasta no envio
 Entrega final com download em alta,entrega,could,unknown,no,[11]
 Idiomas PT EN ES,conta,could,yes,no,[3]
 Lembrete por WhatsApp,notificações,could,unknown,no,inferido; comum no Brasil

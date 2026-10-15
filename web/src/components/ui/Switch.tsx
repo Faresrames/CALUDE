@@ -8,9 +8,11 @@ export type SwitchProps = {
   checked: boolean;
   onChange: (checked: boolean) => void;
   disabled?: boolean;
+  /** dentro de <form>: envia "on"/"off" com este nome */
+  name?: string;
 };
 
-export function Switch({ label, description, checked, onChange, disabled }: SwitchProps) {
+export function Switch({ label, description, checked, onChange, disabled, name }: SwitchProps) {
   const id = useId();
   return (
     <div className="flex items-start justify-between gap-4">
@@ -41,6 +43,7 @@ export function Switch({ label, description, checked, onChange, disabled }: Swit
           )}
         />
       </button>
+      {name && <input type="hidden" name={name} value={checked ? "on" : "off"} />}
     </div>
   );
 }
