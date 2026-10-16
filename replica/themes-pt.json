@@ -1,0 +1,20 @@
+{
+  "_about": "Temas em português para sistemas de seleção de fotos (adaptado de themes.json do replica-entrepreneur).",
+  "request_patterns": ["\\bgostaria\\b", "\\bpoderia ter\\b", "\\bfalta\\b", "\\bnão tem como\\b", "\\bseria bom\\b", "\\bnão (dá|da) para\\b"],
+  "themes": [
+    {"id": "instabilidade", "label": "Fora do ar, não abre, não carrega", "kind": "complaint",
+     "patterns": ["n[ãa]o abre", "fora do ar", "indisponibilidade", "n[ãa]o carreg", "n[ãa]o funciona", "erros?\\b"]},
+    {"id": "selecao_bloqueada", "label": "Cliente não consegue selecionar", "kind": "complaint",
+     "patterns": ["n[ãa]o consegue selecionar", "impossibilita a sele[çc][ãa]o", "escolha e compra"]},
+    {"id": "cobranca", "label": "Cobrança, créditos e cancelamento", "kind": "complaint",
+     "patterns": ["cobran[çc]a", "cr[ée]ditos", "cancel", "indevid"]},
+    {"id": "entrega", "label": "Fotos pagas não entregues / envio falha", "kind": "complaint",
+     "patterns": ["n[ãa]o entregues", "problemas com envio", "pagas"]},
+    {"id": "suporte", "label": "Suporte ruim", "kind": "complaint",
+     "patterns": ["suporte", "descaso", "atendimento"]},
+    {"id": "organizacao", "label": "Arquivos desorganizados", "kind": "complaint",
+     "patterns": ["desorganiza"]},
+    {"id": "troca", "label": "Troca de plataforma / desistência", "kind": "complaint",
+     "patterns": ["n[ãa]o contratem", "p[ée]ssima plataforma", "depois fui para", "hoje utilizo", "tantos pontos a reclamar"]}
+  ]
+}

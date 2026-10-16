@@ -14,7 +14,7 @@ Painel do fotógrafo com status de cada galeria,gerenciador,must,yes,yes,inferid
 Exportar nomes das fotos escolhidas para o Lightroom,entrega,must,yes,yes,[5][6] | clone: lista separada por vírgula + CSV; conferir o filtro Contém num Lightroom real
 Favoritar fotos,seleção,should,yes,yes,[1]
 Comentário por foto,seleção,should,yes,yes,[1] | clone: cliente comenta; fotógrafo lê (responder ainda não)
-Venda de fotos extras com preço por foto,vendas,should,yes,yes,[7][9] confirmar se o Select faz | clone: pedido criado ao enviar; PIX com QR
+Venda de fotos extras com preço por foto,vendas,should,yes,yes,[12] central de ajuda: 'Select 2.0 - Venda de fotos em seleção' (pacote mínimo com desconto) | [7][9] confirmar se o Select faz | clone: pedido criado ao enviar; PIX com QR
 Pagamento de extras por PIX,vendas,should,unknown,yes,[7] confirmar no Select | clone: PIX estático com a chave do fotógrafo; ele confirma o recebimento (automático na v2 via Mercado Pago)
 Pagamento de extras por cartão,vendas,should,unknown,no,[7] confirmar no Select
 Lembretes automáticos de prazo ao cliente,notificações,should,yes,yes,"[1][4] | clone: e-mail: 3 dias antes, último dia, sem abrir há 5 dias; WhatsApp ainda não"
@@ -26,10 +26,16 @@ Funciona bem no celular,cliente,should,yes,yes,[1] | clone: todas as telas sem r
 Teste grátis de 14 dias e planos,saas,should,yes,yes,"[1] necessário para vender | clone: Asaas: assinatura mensal, webhook, cancelar em 1 clique (não testado com conta real); preços provisórios"
 Favoritas sugeridas pelo fotógrafo,seleção,could,no,partial,[4] ideia do concorrente | clone: etiqueta Sugestão aparece; falta o fotógrafo marcar
 Pastas por momento do evento,galerias,could,unknown,partial,[4] | clone: cliente filtra por momento; falta escolher a pasta no envio
-Entrega final com download em alta,entrega,could,unknown,no,[11]
+Entrega final com download em alta,entrega,could,yes,no,[12] central de ajuda: 'Select 2.0 - Solicitar seleção com entrega de todas as fotos' / 'entrega das fotos selecionadas' | [11]
 Idiomas PT EN ES,conta,could,yes,no,[3]
 Lembrete por WhatsApp,notificações,could,unknown,no,inferido; comum no Brasil
 Galeria pública com cadastro,acesso,could,unknown,no,[10]
 Organização automática no computador do fotógrafo,desktop,could,yes,skip,[1] exige app desktop; fora da v1
 Plugin Lightroom Classic,desktop,could,no,skip,[6] projeto separado; exportar lista cobre a v1
 Sites para fotógrafos da EPICS,outro produto,could,yes,skip,outro produto da EPICS fora do escopo
+Página de status pública e monitor do fluxo do cliente,confiança,should,no,no,fix: instabilidade 6/14 (4 empresas); replica-deploy
+Seleção que não se perde sem internet (fila e reenvio),seleção,should,no,partial,fix: instabilidade/não consegue selecionar; hoje desfaz e avisa
+Cobrança fixa sem créditos e aviso antes de cada cobrança,saas,should,no,partial,"fix: cobrança/créditos 3/14; plano fixo já existe, falta aviso e histórico; replica-launch"
+Entrega automática das fotos pagas,entrega,should,no,no,fix: 'Fotos pagas e não entregues' (Alboom); depende da entrega final S18
+Suporte com prazo de resposta visível no painel,confiança,should,no,no,fix: suporte 2/14 (thin)
+Exportar tudo e importar clientes (sem prisão),conta,could,no,no,fix: troca de plataforma 3/14 (2 fontes)

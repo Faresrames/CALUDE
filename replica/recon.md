@@ -26,7 +26,8 @@ salvos em `replica/screens/`.
 | 9 | concorrente: eSelect | https://digifotoonline.com.br/ | extras em vários tamanhos e preços |
 | 10 | guia da categoria | https://blog.fotto.com.br/selecao-de-fotos/ | galerias privadas (login) e públicas |
 | 11 | Alboom (blog) | https://blog.alboompro.com/aprovacao-de-fotos-online/ | alertas de inatividade, entrega até 4K, integração Lightroom |
-| 12 | conta do usuário | https://app.select.pics/gerenciador | **pendente: prints** |
+| 12 | central de ajuda do Select (títulos via busca; o site não abre daqui) | https://suporte.epics.com.br/hc/pt-br/articles/11077710486555-Select-2-0-Venda-de-fotos-em-sele%C3%A7%C3%A3o | confirma venda de fotos em seleção e entrega (todas, selecionadas ou após pagamento) |
+| 13 | conta do usuário | https://app.select.pics/gerenciador | **pendente: prints** |
 
 Não foram encontrados: central de ajuda pública, página de preços atual,
 changelog nem API pública do Select.
