@@ -12,8 +12,8 @@ async function setPix(page: Page) {
   await page.getByLabel("Tipo de chave").selectOption("email");
   await page.getByLabel("Chave PIX").fill("pix@estudio.com");
   await page.getByLabel("Nome de quem recebe").fill("Estúdio Teste");
-  await page.getByLabel("Cidade").fill("São Paulo");
-  await page.getByRole("button", { name: "Salvar" }).click();
+  await page.getByLabel("Cidade", { exact: true }).fill("São Paulo");
+  await page.getByRole("button", { name: "Salvar", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "Salvo." })).toBeVisible();
 }
 

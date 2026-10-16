@@ -8,6 +8,10 @@ export type Photographer = {
   businessName: string | null;
   email: string;
   watermarkText: string | null;
+  /** PNG da marca d'água no storage; se existir, é usado no lugar do texto */
+  watermarkKey: string | null;
+  watermarkOpacity: number; // 0–100
+  watermarkPosition: WatermarkPosition;
   pixKey: string | null;
   pixKeyType: "cpf" | "cnpj" | "email" | "phone" | "random" | null;
   pixMerchantName: string | null;
@@ -15,8 +19,22 @@ export type Photographer = {
   createdAt: string;
 };
 
+export type WatermarkPosition = "center" | "tiled" | "bottom-right";
+
 export type PhotographerPatch = Partial<Pick<Photographer,
-  "name" | "businessName" | "watermarkText" | "pixKey" | "pixKeyType" | "pixMerchantName" | "pixMerchantCity">>;
+  "name" | "businessName" | "watermarkText" | "watermarkKey" | "watermarkOpacity" | "watermarkPosition"
+  | "pixKey" | "pixKeyType" | "pixMerchantName" | "pixMerchantCity">>;
+
+// ── álbum ──
+export type AlbumStatus = "pending" | "changes_requested" | "approved";
+export type AlbumComment = { id: string; spreadId: string; x: number | null; y: number | null; author: "client" | "photographer"; body: string; createdAt: string };
+export type AlbumSpread = { id: string; position: number; imageKey: string; width: number | null; height: number | null; comments: AlbumComment[] };
+export type AlbumVersion = { id: string; number: number; status: AlbumStatus; note: string | null; decidedAt: string | null; createdAt: string; spreads: AlbumSpread[] };
+export type Album = { id: string; galleryId: string; photographerId: string; title: string; createdAt: string; versions: AlbumVersion[] };
+export type AlbumSummary = {
+  id: string; galleryId: string; title: string; galleryTitle: string; clientName: string | null;
+  latest: { number: number; status: AlbumStatus } | null;
+};
 
 export type Order = {
   id: string;
@@ -57,7 +75,7 @@ export type ReminderTarget = {
 
 export type ExpiredGallery = { galleryId: string; title: string; photographerEmail: string; clientName: string | null };
 
-export type NotificationKind = "gallery_sent" | "reminder" | "deadline_tomorrow" | "submitted" | "order_paid" | "album_ready" | "delivered" | "expired";
+export type NotificationKind = "gallery_sent" | "reminder" | "deadline_tomorrow" | "submitted" | "order_paid" | "album_ready" | "album_decided" | "delivered" | "expired";
 
 export type Client = {
   id: string;
@@ -169,6 +187,7 @@ export type DataErrorCode =
   | "package_full"
   | "comments_off"
   | "plan_inactive"
+  | "album_locked"
   | "invalid";
 
 export class DataError extends Error {
@@ -221,6 +240,17 @@ export interface DataLayer {
   /** Registra um envio; false se já houve um igual hoje (não manda de novo). */
   claimNotification(galleryId: string, kind: NotificationKind, channel: "email", recipient: string): Promise<string | null>;
   finishNotification(id: string, error: string | null): Promise<void>;
+
+  listAlbums(photographerId: string): Promise<AlbumSummary[]>;
+  createAlbum(photographerId: string, galleryId: string, title: string): Promise<{ id: string }>;
+  /** Álbum com todas as versões (mais nova primeiro), lâminas e comentários. */
+  getAlbum(photographerId: string, albumId: string): Promise<Album | null>;
+  /** Para o cliente: o álbum da galeria, só com a versão mais nova. */
+  getAlbumForGallery(galleryId: string): Promise<Album | null>;
+  addAlbumVersion(photographerId: string, albumId: string, input: { note: string | null; spreads: { imageKey: string; width: number; height: number }[] }): Promise<AlbumVersion>;
+  /** Comentário do cliente num ponto (x,y de 0 a 1) ou na lâmina toda; só na versão mais nova ainda sem decisão. */
+  addSpreadComment(galleryId: string, spreadId: string, input: { x: number | null; y: number | null; body: string }): Promise<AlbumComment>;
+  decideAlbumVersion(galleryId: string, versionId: string, decision: "approved" | "changes_requested"): Promise<AlbumVersion>;
 
   listComments(galleryId: string): Promise<Comment[]>;
   addComment(galleryId: string, input: { photoId: string | null; author: Comment["author"]; body: string }): Promise<Comment>;

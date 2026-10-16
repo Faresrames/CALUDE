@@ -12,8 +12,8 @@ Armazenamento: R2 em produção, disco local em desenvolvimento. Ver `replica/ba
 | S05 | 2026-10-15 | done | responder comentário; marcar "sugestão" | — |
 | S06 | 2026-10-15 | done (dentro de S05) | conferir o filtro "Contém" num Lightroom de verdade | — |
 | S07 | 2026-10-15 | stub | lista de clientes | — |
-| S08 | 2026-10-15 | partial | marca d'água PNG, logo | chave PIX validada por tipo; apagar conta com confirmação |
-| S09 | 2026-10-15 | stub | aprovação de álbum (fotógrafo) | — |
+| S08 | 2026-10-16 | done | — | marca d'água: logo PNG ou texto, opacidade, posição, prévia ao vivo com o mesmo código das fotos |
+| S09 | 2026-10-16 | done | — | lâminas reduzidas a 2400px no navegador; histórico de versões com pinos |
 | S10 | 2026-10-15 | done | testar no sandbox do Asaas; preços finais | Asaas pede CPF/CNPJ para cobrar |
 | S11 | 2026-10-15 | done | — | — |
 | S12 | 2026-10-15 | done | — | imagem carregava antes da hidratação e ficava invisível (corrigido no design) |
@@ -21,7 +21,7 @@ Armazenamento: R2 em produção, disco local em desenvolvimento. Ver `replica/ba
 | S14 | 2026-10-15 | done | — | — |
 | S15 | 2026-10-15 | done | confirmação automática (v2) | BR Code conferido contra o exemplo do Banco Central |
 | S16 | 2026-10-15 | done | — | — |
-| S17 | 2026-10-15 | stub | aprovação de álbum (cliente) | — |
+| S17 | 2026-10-16 | done | — | marcar ponto pelo teclado (Enter marca o centro); comentário na lâmina toda como alternativa |
 | S18 | 2026-10-15 | stub | entrega final com zip | — |
 
 ## Mais difícil do que parecia
@@ -64,3 +64,9 @@ validada no schema), leitor de tela (axe) e Safari.
 - Suíte Playwright em `web/e2e/` (33 specs, axe em toda tela, falha com erro de console ou 5xx) + 18 testes de unidade/integração.
 - 6 bugs achados e corrigidos (c15883b): sessão expirada no envio, título longo no celular, prazo sem fuso,
   CSV com vírgula, CSV virando fórmula, ordem dos títulos. Detalhes em `replica/bugs.md`.
+
+## Marca d'água e álbum (2026-10-16)
+
+- Migração 0002 (tamanho das lâminas, aviso "álbum decidido", padrão da marca d'água em diagonal).
+- Paridade 82,4 → 90,4; essenciais 13/13. +4 specs e +3 testes de dados, todos passando.
+- Pego antes de enviar: a posição padrão da marca d'água tinha virado "centro" (protege menos); voltou para diagonal.

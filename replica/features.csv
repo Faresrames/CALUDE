@@ -3,7 +3,7 @@ Cadastro e login do fotógrafo,conta,must,yes,yes,[3] | clone: Supabase Auth: li
 Criar galeria com cliente titulo e data,galerias,must,yes,yes,[1]
 Upload em massa de fotos com progresso,galerias,must,yes,yes,"[1] milhares de fotos por evento | clone: lotes de 50, 2-4 workers, retomada pulando nomes repetidos"
 Miniaturas e versões leves geradas no servidor,galerias,must,yes,yes,"inferido; necessário para abrir rápido no celular | clone: geradas no navegador (1600px e 400px), não no servidor: decisão do architect"
-Marca d'água personalizada,galerias,must,yes,partial,"[1][5] | clone: texto em diagonal com o nome do estúdio; falta PNG, opacidade e posição em S08"
+Marca d'água personalizada,galerias,must,yes,yes,"[1][5] | clone: texto ou logo PNG; opacidade 5–100%; diagonal, centro ou canto; prévia ao vivo em S08; testado pixel a pixel"
 Link privado com senha para o cliente,acesso,must,yes,yes,[10] | clone: token no link + senha opcional + 5 tentativas/min
 Grade de fotos do cliente com marcar e desmarcar,seleção,must,yes,yes,[1]
 Contador de fotos do pacote (X de Y),seleção,must,yes,yes,[7] inferido no Select | clone: número confirmado pelo servidor
@@ -20,8 +20,8 @@ Pagamento de extras por cartão,vendas,should,unknown,no,[7] confirmar no Select
 Lembretes automáticos de prazo ao cliente,notificações,should,yes,yes,"[1][4] | clone: e-mail: 3 dias antes, último dia, sem abrir há 5 dias; WhatsApp ainda não"
 Aviso ao fotógrafo quando a seleção é enviada,notificações,should,yes,yes,inferido | clone: e-mail + painel; também quando o prazo vence
 Bloqueio de botão direito e download na galeria,acesso,should,yes,yes,[1] anti-cópia limitado no navegador | clone: botão direito e arrastar bloqueados + marca d'água
-Aprovação de álbum com comentários na lâmina,álbum,should,yes,no,[1] | clone: S09/S17 reservadas
-Versões do álbum com histórico de alterações,álbum,should,yes,no,[1]
+Aprovação de álbum com comentários na lâmina,álbum,should,yes,yes,"[1] | clone: S09/S17: comentário num ponto (x,y) ou na lâmina toda; aprovar ou pedir ajustes; e-mails nos dois sentidos"
+Versões do álbum com histórico de alterações,álbum,should,yes,yes,[1] | clone: versão N com recado; cliente vê só a mais nova; fotógrafo vê o histórico com os pinos
 Funciona bem no celular,cliente,should,yes,yes,[1] | clone: todas as telas sem rolagem lateral em 390px
 Teste grátis de 14 dias e planos,saas,should,yes,yes,"[1] necessário para vender | clone: Asaas: assinatura mensal, webhook, cancelar em 1 clique (não testado com conta real); preços provisórios"
 Favoritas sugeridas pelo fotógrafo,seleção,could,no,partial,[4] ideia do concorrente | clone: etiqueta Sugestão aparece; falta o fotógrafo marcar

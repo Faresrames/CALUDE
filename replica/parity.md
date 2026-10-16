@@ -1,48 +1,47 @@
 # Paridade: seu app × Select (EPICS)
 
-Data: 2026-10-15 · Build: `claude/cool-goldberg-6wnj5g` (c15883b + docs) · Ferramenta: `.claude/skills/replica-diff/parity.py`
+Data: 2026-10-16 · Build: `claude/cool-goldberg-6wnj5g` · Ferramenta: `.claude/skills/replica-diff/parity.py`
 
-## Veredito: **ainda não dá para lançar** (falta 1 essencial)
+## Veredito: **lançável** (todas as essenciais prontas, nota 80+, sem S1/S2)
 
 | medida | nota |
 | --- | --- |
-| **Funcionalidades** | **82,4 / 100** (30 contadas; essenciais 12 de 13) |
-| Funcionalidades, se o Select não tiver as 6 "unknown" | 89,2 / 100 (24 contadas) |
+| **Funcionalidades** | **90,4 / 100** (30 contadas; essenciais **13 de 13**) |
+| Funcionalidades, se o Select não tiver as 6 "unknown" | 98,3 / 100 (24 contadas) |
 | Layout por tela | **não medido**: não há prints do Select (`replica/screens/` vazio) |
-| Bugs abertos | nenhum S1/S2 (6 S3/S4 corrigidos no /replica-test) |
+| Bugs abertos | nenhum (6 S3/S4 corrigidos no /replica-test) |
+| Testes | 37 no navegador + 21 de dados, todos passando |
+
+Histórico: 82,4 (12/13) em 2026-10-15 → 90,4 (13/13) depois da marca d'água com logo e da aprovação de álbum.
 
 As linhas com original "unknown" (cartão, PIX, entrega final, pastas por momento, WhatsApp, galeria pública)
-foram contadas **como se o Select tivesse**: a nota de 82,4 é a conservadora.
+contam **como se o Select tivesse**: 90,4 é a nota conservadora.
 
-Regra da skill: lançável = todas as essenciais prontas + nota 80+ + sem S1/S2 abertos.
-Falta só a essencial abaixo; o resto já passa.
+"Lançável" na régua da skill não é "pronto para cliente pagante": ainda faltam a marca própria
+(/replica-brand), a política de privacidade e o teste com as suas contas reais (`replica/backend.md`).
 
 ## Por área (mais fraca primeiro)
 
 | área | nota | itens |
 | --- | --- | --- |
-| álbum | 0 | 2 |
-| vendas | 66,7 | 3 |
-| conta | 75 | 2 |
-| entrega | 75 | 2 |
-| notificações | 80 | 3 |
-| acesso | 83,3 | 3 |
-| galerias | 84,6 | 5 |
-| seleção, gerenciador, cliente, saas | 100 | 10 |
+| vendas | 66,7 | 3 (falta cartão) |
+| conta | 75 | 2 (falta idiomas) |
+| entrega | 75 | 2 (falta entrega final) |
+| notificações | 80 | 3 (falta WhatsApp) |
+| acesso | 83,3 | 3 (falta galeria pública) |
+| galerias | 96,2 | 5 (pastas no envio, parcial) |
+| seleção, gerenciador, álbum, cliente, saas | 100 | 12 |
 
 ## O que falta, na ordem de construir
 
-1. **[essencial] Marca d'água personalizada — parcial.** Hoje: texto em diagonal com o nome do estúdio.
-   Falta: subir o logo em PNG, opacidade e posição em Configurações (S08), e usar no envio. A coluna `watermark_key` e o
-   `watermark_opacity/position` já existem no banco. **Tamanho: P (1–2 dias).**
-2. **[importante] Aprovação de álbum** (2 itens: comentários na lâmina + versões). Tabelas prontas (`albums`,
-   `album_versions`, `album_spreads`, comentários com x/y); faltam S09 e S17. **Tamanho: M (1 semana).**
-3. **[importante] Pagamento das extras por cartão.** Não confirmado no Select. Cartão exige intermediador
-   (Mercado Pago com a conta do fotógrafo conectada). **Tamanho: M.** Confirmar se vale antes de fazer.
-4. **[opcional] Entrega final em alta** (S18 reservada; `photos.final_key` existe). **Tamanho: M** (zip em stream, custo de banda).
-5. **[opcional] Pastas por momento no envio.** O cliente já filtra; falta o fotógrafo escolher a pasta ao subir. **Tamanho: P.**
+1. ~~Marca d'água personalizada~~ — **feito** (logo PNG ou texto, opacidade, posição, prévia; testado pixel a pixel).
+2. ~~Aprovação de álbum~~ — **feito** (S09 + S17, pinos na lâmina, versões, e-mails).
+3. **[importante] Pagamento das extras por cartão.** Não confirmado no Select. Exige intermediador
+   (Mercado Pago com a conta do fotógrafo conectada). **M.** Confirmar se vale antes.
+4. **[opcional] Entrega final em alta** (S18; `photos.final_key` existe). **M.**
+5. **[opcional] Pastas por momento no envio.** **P.**
 
-Depois: idiomas EN/ES, lembrete por WhatsApp (API oficial do WhatsApp Business), galeria pública com cadastro.
+Depois: idiomas EN/ES, lembrete por WhatsApp (API oficial), galeria pública com cadastro.
 
 ## Fora de propósito (não pontuado)
 
@@ -72,15 +71,13 @@ Não deu para percorrer o Select (login fechado, sem prints). O que se sabe das 
 | F01 cliques (fotógrafo) | não medido | Nova galeria → formulário → Criar → arrastar → Continuar → Liberar → Copiar link = **6 cliques** + digitação | manter |
 | F04 organização | separa as fotos sozinho no computador (app) | lista para colar no Lightroom + CSV | mudar depois (plugin/app), se os usuários pedirem |
 | F05 prazo | notificações para controlar o prazo (EPICS) | e-mail 3 dias antes, no último dia, se não abriu em 5 dias; avisa você quando vence | manter; WhatsApp depois |
-| F06 álbum | comentários no layout e versões | não construído | construir (item 2) |
+| F06 álbum | comentários no layout e versões | comentário num ponto ou na lâmina toda, versões com recado, aprovar/pedir ajustes, e-mails | manter |
 | extras | não confirmado | PIX direto para você, com QR | manter (diferencial: o dinheiro não passa pela plataforma) |
 
-## Os 5 próximos
+## Os próximos
 
-1. Marca d'água com logo PNG, opacidade e posição — destrava o "lançável".
-2. Aprovação de álbum (S09 + S17).
-3. Decidir sobre cartão nas extras (Mercado Pago) — só se o Select tiver ou seus clientes pedirem.
-4. Entrega final em alta (S18).
-5. Escolher pasta/momento no envio.
-
-Próximo passo da skill: `/replica-build` para o item 1 (e o 2, se quiser), depois `/replica-entrepreneur`.
+1. `/replica-entrepreneur`: ler o que os usuários do Select e dos concorrentes reclamam e virar diferencial.
+2. Decidir sobre cartão nas extras (Mercado Pago).
+3. Entrega final em alta (S18).
+4. Escolher pasta/momento no envio.
+5. Idiomas e WhatsApp, se o público pedir.

@@ -78,6 +78,11 @@ h1, h2, h3, nav[aria-label="Caminho"] {
   overflow-wrap: anywhere;
 }
 
+/* Controles nativos na cor do tema */
+input[type="radio"], input[type="checkbox"], input[type="range"] {
+  accent-color: var(--c-accent);
+}
+
 /* Foco visível e igual em tudo: 2px, cor de foco, afastado 2px. */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--c-focus);

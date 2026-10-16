@@ -21,3 +21,17 @@ export const selectionBody = z.object({ selected: z.boolean().optional(), favori
   .refine((b) => b.selected !== undefined || b.favorited !== undefined);
 export const commentBody = z.object({ photoId: z.string().uuid().nullish(), body: z.string().trim().min(1).max(2000) });
 export const unlockBody = z.object({ password: z.string().max(200).optional() });
+
+export const albumUploadsBody = z.object({ count: z.number().int().min(1).max(200) });
+export const albumVersionBody = z.object({
+  note: z.string().trim().max(1000).nullish(),
+  spreads: z.array(z.object({
+    imageKey: z.string().max(300),
+    width: z.number().int().positive().max(20000),
+    height: z.number().int().positive().max(20000),
+  })).min(1).max(200),
+});
+const coord = z.number().min(0).max(1).nullable();
+export const spreadCommentBody = z.object({ spreadId: z.string().uuid(), x: coord, y: coord, body: z.string().trim().min(1).max(2000) })
+  .refine((b) => (b.x === null) === (b.y === null));
+export const albumDecisionBody = z.object({ versionId: z.string().uuid(), decision: z.enum(["approved", "changes_requested"]) });

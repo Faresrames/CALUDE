@@ -225,3 +225,64 @@ describe("apagar conta", () => {
     }
   });
 });
+
+describe("álbum", () => {
+  const spreads = (n: number, v: number) => Array.from({ length: n }, (_, i) => ({ imageKey: `a/v${v}s${i}.jpg`, width: 2000, height: 1000 }));
+
+  test("versões, comentário no ponto, pedir ajuste, nova versão, aprovar; trava depois", async () => {
+    const p = await photographer("album@x.com");
+    const { g } = await sentGallery(p.id);
+    const { id: albumId } = await data.createAlbum(p.id, g.id, "Álbum 30x30");
+    assert.equal(await code(data.createAlbum(p.id, g.id, "outro")), "invalid"); // um por galeria
+    assert.equal((await data.getAlbumForGallery(g.id))?.versions.length, 0);
+
+    const v1 = await data.addAlbumVersion(p.id, albumId, { note: "Primeira diagramação", spreads: spreads(3, 1) });
+    assert.equal(v1.number, 1); assert.equal(v1.status, "pending"); assert.deepEqual(v1.spreads.map((s) => s.position), [1, 2, 3]);
+    const c = await data.addSpreadComment(g.id, v1.spreads[1].id, { x: 0.25, y: 0.5, body: "Trocar esta foto" });
+    assert.equal(c.x, 0.25); assert.equal(c.y, 0.5);
+    await data.addSpreadComment(g.id, v1.spreads[0].id, { x: null, y: null, body: "Lâmina toda mais clara" });
+    assert.equal(await code(data.addSpreadComment(g.id, v1.spreads[0].id, { x: 1.5, y: 0.2, body: "fora" })), "invalid");
+    assert.equal(await code(data.addSpreadComment(g.id, v1.spreads[0].id, { x: 0.5, y: null, body: "meio ponto" })), "invalid");
+    await data.decideAlbumVersion(g.id, v1.id, "changes_requested");
+    assert.equal(await code(data.addSpreadComment(g.id, v1.spreads[0].id, { x: null, y: null, body: "tarde" })), "album_locked");
+    assert.equal(await code(data.decideAlbumVersion(g.id, v1.id, "approved")), "album_locked");
+
+    const v2 = await data.addAlbumVersion(p.id, albumId, { note: "Ajustes da v1", spreads: spreads(3, 2) });
+    assert.equal(v2.number, 2);
+    const forClient = await data.getAlbumForGallery(g.id);
+    assert.deepEqual(forClient?.versions.map((v) => v.number), [2]); // cliente vê só a mais nova
+    await data.decideAlbumVersion(g.id, v2.id, "approved");
+    const full = await data.getAlbum(p.id, albumId);
+    assert.deepEqual(full?.versions.map((v) => `${v.number}:${v.status}`), ["2:approved", "1:changes_requested"]);
+    assert.equal(full?.versions[1].spreads[1].comments[0].body, "Trocar esta foto");
+    const list = await data.listAlbums(p.id);
+    assert.deepEqual(list.map((a) => a.latest), [{ number: 2, status: "approved" }]);
+  });
+
+  test("isolamento: outro fotógrafo e outra galeria não mexem no álbum", async () => {
+    const a = await photographer("album-a@x.com");
+    const b = await photographer("album-b@x.com");
+    const { g } = await sentGallery(a.id);
+    const { g: other } = await sentGallery(b.id);
+    const { id } = await data.createAlbum(a.id, g.id, "Álbum");
+    assert.equal(await code(data.createAlbum(b.id, g.id, "roubo")), "not_found");
+    assert.equal(await data.getAlbum(b.id, id), null);
+    assert.equal(await code(data.addAlbumVersion(b.id, id, { note: null, spreads: spreads(1, 9) })), "not_found");
+    const v = await data.addAlbumVersion(a.id, id, { note: null, spreads: spreads(1, 1) });
+    assert.equal(await code(data.addSpreadComment(other.id, v.spreads[0].id, { x: null, y: null, body: "x" })), "not_found");
+    assert.equal(await code(data.decideAlbumVersion(other.id, v.id, "approved")), "not_found");
+    const keys = await data.deletePhotographer(a.id);
+    assert.ok(keys.includes("a/v1s0.jpg")); // lâminas entram na limpeza do storage
+  });
+});
+
+describe("marca d'água", () => {
+  test("guarda imagem, opacidade e posição; recusa valores fora do lugar", async () => {
+    const p = await photographer("marca@x.com");
+    assert.equal(p.watermarkOpacity, 40); assert.equal(p.watermarkPosition, "tiled");
+    const u = await data.updatePhotographer(p.id, { watermarkKey: "w/logo.png", watermarkOpacity: 70, watermarkPosition: "bottom-right" });
+    assert.equal(u.watermarkKey, "w/logo.png"); assert.equal(u.watermarkOpacity, 70); assert.equal(u.watermarkPosition, "bottom-right");
+    assert.equal(await code(data.updatePhotographer(p.id, { watermarkOpacity: 150 })), "invalid");
+    assert.equal(await code(data.updatePhotographer(p.id, { watermarkPosition: "topo" as never })), "invalid");
+  });
+});

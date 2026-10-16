@@ -47,7 +47,9 @@ Fluxos de `replica/recon.md`. F06 (álbum) e F07 (entrega final) ainda não fora
 | F05-H1 | lembrete de prazo | feliz | prazo em 12h, rodar cron | e-mail "Último dia" ao cliente | e2e |
 | F05-E1 | | cron 2x | rodar de novo | sem e-mail repetido | e2e |
 | F05-N1 | | cron sem segredo | chamar sem token | 401 | e2e |
-| F06-* | álbum | — | — | não construído (S09/S17 reservadas) | — |
+| F06-H1 | álbum | feliz | criar álbum, publicar 3 lâminas, cliente comenta num ponto, na lâmina toda e pelo teclado, pede ajustes; v2; aprova | pinos nas posições certas, e-mails nos dois sentidos, versão decidida trava (409), fotógrafo vê "aprovado" | e2e |
+| F06-E1 | | sem comentário / outro fotógrafo | abrir álbum sem versão; "Pedir ajustes" sem comentário; outro login | aviso "ainda não está pronto"; botão desligado; 404 | e2e |
+| W-H1 | marca d'água | feliz | logo PNG vermelho, 100%, canto; subir foto azul | canto da miniatura vermelho, resto azul; arquivo não-PNG recusado | e2e |
 | F07-* | entrega final | — | — | não construído (S18 reservada) | — |
 | C-H1 | conta | feliz | PIX inválido recusado, válido salvo; apagar conta com confirmação | dados e login apagados | e2e |
 | C-E1 | | teste grátis vencido | criar galeria | bloqueado com aviso | e2e |
@@ -61,7 +63,8 @@ Fluxos de `replica/recon.md`. F06 (álbum) e F07 (entrega final) ainda não fora
 
 ## Resultado (2026-10-15)
 
-- Automático: **33 specs Playwright** (todos os casos `e2e` acima) + **18 testes** de unidade/integração (`npm test`).
+- 2026-10-16: +4 specs (marca d'água e álbum) e +3 testes de dados → **37 specs e 21 testes, todos passando**.
+- Automático (2026-10-15): **33 specs Playwright** (todos os casos `e2e` acima) + **18 testes** de unidade/integração (`npm test`).
 - 1ª rodada: 27 passaram, 6 falharam → 5 bugs do app (BUG-001 a 005), 1 de acessibilidade (BUG-006) e 1 erro do teste (F01-E9).
 - Depois das correções (c15883b): **33/33 e 18/18 passando**, zero violações de acessibilidade (axe) em S01–S05, S08, S10–S16.
 - Manuais M-1 a M-6: pendentes (precisam das suas contas, do seu Lightroom e dos seus aparelhos).

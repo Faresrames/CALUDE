@@ -66,3 +66,21 @@ export function orderPaidMail(to: string, g: { title: string; url: string; studi
   ], { label: "Ver minhas fotos", url: g.url }, `Enviado por ${g.studio}.`);
   return { to, subject: `Pagamento confirmado: ${g.title}`, ...body };
 }
+
+export function albumReadyMail(to: string, g: { title: string; url: string; studio: string; clientName: string | null; number: number; note: string | null }): Mail {
+  const body = layout(g.number === 1 ? "Seu álbum está pronto para revisar" : `Nova versão do álbum (${g.number})`, [
+    `${g.clientName ? `Oi, ${g.clientName}! ` : ""}${g.studio} mandou ${g.number === 1 ? "a diagramação" : "uma nova versão"} do álbum de “${g.title}”.`,
+    ...(g.note ? [`Recado do fotógrafo: ${g.note}`] : []),
+    "Toque em qualquer ponto de uma página para comentar ali. Quando estiver tudo certo, é só aprovar.",
+  ], { label: "Revisar o álbum", url: g.url }, `Enviado por ${g.studio}.`);
+  return { to, subject: `Álbum para revisar: ${g.title}`, ...body };
+}
+
+export function albumDecidedMail(to: string, g: { title: string; url: string; clientName: string | null; number: number; approved: boolean; comments: number }): Mail {
+  const body = layout(g.approved ? "Álbum aprovado" : "Ajustes pedidos no álbum", [
+    g.approved
+      ? `${g.clientName ?? "O cliente"} aprovou a versão ${g.number} do álbum de “${g.title}”. Pode mandar para a gráfica.`
+      : `${g.clientName ?? "O cliente"} pediu ajustes na versão ${g.number} do álbum de “${g.title}”, com ${g.comments} ${g.comments === 1 ? "comentário" : "comentários"}.`,
+  ], { label: "Abrir o álbum", url: g.url });
+  return { to, subject: `${g.approved ? "Álbum aprovado" : "Ajustes no álbum"}: ${g.title}`, ...body };
+}

@@ -7,7 +7,7 @@ test.describe("Conta e plano", () => {
     await a11y(page); // S08
     await page.getByLabel("Tipo de chave").selectOption("cpf");
     await page.getByLabel("Chave PIX").fill("123");
-    await page.getByRole("button", { name: "Salvar" }).click();
+    await page.getByRole("button", { name: "Salvar", exact: true }).click();
     await expect(page.getByText("Chave PIX inválida para o tipo escolhido.")).toBeVisible();
     await page.getByLabel(`Digite ${email} para confirmar`).fill("outro@x.com");
     await page.getByRole("button", { name: "Apagar minha conta" }).click();

@@ -6,13 +6,17 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { Dropzone, UploadList, type UploadItem } from "@/components/ui/UploadList";
 import { createResizePool, putWithProgress } from "@/lib/upload/pool";
+import type { WatermarkConfig } from "@/lib/upload/resize.worker";
+import type { WatermarkPosition } from "@/lib/upload/watermark";
+
+export type WatermarkProps = { text: string | null; imageUrl: string | null; opacity: number; position: WatermarkPosition };
 
 const ACCEPTED = /\.(jpe?g|png)$/i;
 const BATCH = 50;
 
 type Ticket = { name: string; skip: boolean; previewKey?: string; thumbKey?: string; previewUrl?: string; thumbUrl?: string };
 
-export function Uploader({ galleryId, watermark, startCount }: { galleryId: string; watermark: string | null; startCount: number }) {
+export function Uploader({ galleryId, watermark, startCount }: { galleryId: string; watermark: WatermarkProps | null; startCount: number }) {
   const router = useRouter();
   const toast = useToast();
   const [items, setItems] = useState<UploadItem[]>([]);
@@ -32,6 +36,21 @@ export function Uploader({ galleryId, watermark, startCount }: { galleryId: stri
 
   async function process(list: UploadItem[]) {
     setBusy(true);
+    let wm: WatermarkConfig | null = null;
+    if (watermark) {
+      let image: Blob | null = null;
+      if (watermark.imageUrl) {
+        const r = await fetch(watermark.imageUrl).catch(() => null);
+        if (!r?.ok) {
+          toast("error", "Não deu para carregar o logo da marca d’água. Tente de novo.");
+          list.forEach((b) => patch(b.id, { status: "error", error: "Logo indisponível" }));
+          setBusy(false);
+          return;
+        }
+        image = await r.blob();
+      }
+      wm = { text: watermark.text, image, opacity: watermark.opacity, position: watermark.position };
+    }
     const pool = createResizePool();
     let total = 0;
     try {
@@ -56,7 +75,7 @@ export function Uploader({ galleryId, watermark, startCount }: { galleryId: stri
           const t = tickets[j];
           if (t.skip) { patch(item.id, { status: "done", progress: 100, error: undefined }); return null; }
           patch(item.id, { status: "uploading", progress: 5 });
-          const out = await pool.run({ id: item.id, file: files.current.get(item.id)!, watermark });
+          const out = await pool.run({ id: item.id, file: files.current.get(item.id)!, watermark: wm });
           if (!out.ok) { patch(item.id, { status: "error", error: out.error }); return null; }
           try {
             await putWithProgress(t.thumbUrl!, out.thumb, () => {});

@@ -11,7 +11,6 @@ export type SettingsState = { ok?: boolean; errors: Partial<Record<"name" | "pix
 const schema = z.object({
   name: z.string().trim().min(1).max(80),
   businessName: z.string().trim().max(80),
-  watermarkText: z.string().trim().max(40),
   pixKeyType: z.enum(["", "cpf", "cnpj", "email", "phone", "random"]),
   pixKey: z.string().trim().max(77),
   pixMerchantName: z.string().trim().max(60),
@@ -30,7 +29,7 @@ export async function saveSettings(_prev: SettingsState, form: FormData): Promis
     if (!v.pixMerchantCity) return { errors: { pixMerchantCity: "O PIX pede a cidade de quem recebe." } };
   }
   await data.updatePhotographer(p.id, {
-    name: v.name, businessName: v.businessName || null, watermarkText: v.watermarkText || null,
+    name: v.name, businessName: v.businessName || null,
     pixKeyType: pixKey ? (v.pixKeyType as PixKeyType) : null, pixKey,
     pixMerchantName: pixKey ? v.pixMerchantName || v.businessName || v.name : null,
     pixMerchantCity: pixKey ? v.pixMerchantCity : null,

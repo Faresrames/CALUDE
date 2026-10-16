@@ -19,8 +19,6 @@ export function SettingsForms({ p }: { p: Photographer }) {
           <legend className="mb-3 text-lg font-semibold text-ink">Você e o estúdio</legend>
           <Field label="Seu nome" name="name" defaultValue={p.name} error={state.errors.name} required />
           <Field label="Nome do estúdio" name="businessName" defaultValue={p.businessName ?? ""} hint="Aparece para o cliente na galeria e nos e-mails." />
-          <Field label="Texto da marca d’água" name="watermarkText" defaultValue={p.watermarkText ?? ""} maxLength={40}
-            hint="Vale para as próximas fotos enviadas." />
         </fieldset>
         <fieldset className="grid gap-4 sm:grid-cols-2">
           <legend className="mb-1 text-lg font-semibold text-ink">PIX para as fotos extras</legend>

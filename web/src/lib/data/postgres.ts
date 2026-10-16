@@ -6,6 +6,11 @@ import { hashPassword } from "./password";
 import { sql } from "./db";
 import {
   DataError,
+  type Album,
+  type AlbumComment,
+  type AlbumStatus,
+  type AlbumSummary,
+  type AlbumVersion,
   type Comment,
   type DataErrorCode,
   type DataLayer,
@@ -26,7 +31,7 @@ const SUMMARY = `${GALLERY}, c.name as client_name, c.email as client_email,
   (select count(*) from photos p where p.gallery_id = g.id)::int as photo_count,
   (select count(*) from selections s where s.gallery_id = g.id and s.selected)::int as selected_count,
   (select p.thumb_key from photos p where p.gallery_id = g.id order by p.position limit 1) as cover_key`;
-const PHOTOGRAPHER = `id, name, business_name, email, watermark_text, pix_key, pix_key_type, pix_merchant_name, pix_merchant_city, created_at`;
+const PHOTOGRAPHER = `id, name, business_name, email, watermark_text, watermark_key, watermark_opacity, watermark_position, pix_key, pix_key_type, pix_merchant_name, pix_merchant_city, created_at`;
 const PHOTO = `id, gallery_id, photographer_id, original_filename, basename, folder, position, preview_key, thumb_key, width, height, bytes, photographer_pick, created_at`;
 const ORDER = `id, gallery_id, photographer_id, extras_count, unit_price_cents, amount_cents, currency, method, status, paid_at, created_at`;
 
@@ -77,6 +82,7 @@ export const pgData: DataLayer = {
     const cols: Record<string, unknown> = {};
     const map: Record<string, string> = {
       name: "name", businessName: "business_name", watermarkText: "watermark_text", pixKey: "pix_key",
+      watermarkKey: "watermark_key", watermarkOpacity: "watermark_opacity", watermarkPosition: "watermark_position",
       pixKeyType: "pix_key_type", pixMerchantName: "pix_merchant_name", pixMerchantCity: "pix_merchant_city",
     };
     for (const [k, v] of Object.entries(patch)) if (v !== undefined && map[k]) cols[map[k]] = v;
@@ -94,6 +100,8 @@ export const pgData: DataLayer = {
     return db.begin(async (tx) => {
       const keys = await tx<{ k: string }[]>`
         select unnest(array[preview_key, thumb_key, final_key]) as k from photos where photographer_id = ${id}
+        union all select s.image_key from album_spreads s join album_versions v on v.id = s.version_id
+          join albums a on a.id = v.album_id where a.photographer_id = ${id}
         union all select logo_key from photographers where id = ${id}
         union all select watermark_key from photographers where id = ${id}`;
       await tx`delete from photographers where id = ${id}`; // cascade: tudo do fotógrafo
@@ -387,6 +395,95 @@ export const pgData: DataLayer = {
     await sql()`update notifications set sent_at = case when ${error}::text is null then now() else null end, error = ${error} where id = ${id}`;
   },
 
+  async listAlbums(photographerId) {
+    type Row = Omit<AlbumSummary, "latest"> & { number: number | null; status: AlbumStatus | null };
+    const rows = await sql()<Row[]>`
+      select a.id, a.gallery_id, a.title, g.title as gallery_title, c.name as client_name, v.number, v.status
+      from albums a join galleries g on g.id = a.gallery_id left join clients c on c.id = g.client_id
+      left join lateral (select number, status from album_versions where album_id = a.id order by number desc limit 1) v on true
+      where a.photographer_id = ${photographerId} order by a.created_at desc`;
+    return rows.map(({ number, status, ...r }) => ({ ...r, latest: number && status ? { number, status } : null }));
+  },
+
+  async createAlbum(photographerId, galleryId, title) {
+    if (!title.trim() || title.length > 120) throw new DataError("invalid");
+    return guard(async () => {
+      const db = sql();
+      const [g] = await db`select id from galleries where id = ${galleryId} and photographer_id = ${photographerId}`;
+      if (!g) throw new DataError("not_found");
+      const [a] = await db<{ id: string }[]>`
+        insert into albums (gallery_id, photographer_id, title) values (${galleryId}, ${photographerId}, ${title.trim()})
+        on conflict (gallery_id) do nothing returning id`;
+      if (!a) throw new DataError("invalid", "Esta galeria já tem um álbum.");
+      return a;
+    });
+  },
+
+  async getAlbum(photographerId, albumId) {
+    if (!isUuid(albumId)) return null;
+    const [a] = await sql()<{ id: string }[]>`select id from albums where id = ${albumId} and photographer_id = ${photographerId}`;
+    return a ? loadAlbum(a.id, false) : null;
+  },
+
+  async getAlbumForGallery(galleryId) {
+    const [a] = await sql()<{ id: string }[]>`select id from albums where gallery_id = ${galleryId}`;
+    return a ? loadAlbum(a.id, true) : null;
+  },
+
+  async addAlbumVersion(photographerId, albumId, input) {
+    if (!input.spreads.length || input.spreads.length > 200) throw new DataError("invalid");
+    const db = sql();
+    return guard(() => db.begin(async (tx): Promise<AlbumVersion> => {
+      const [a] = await tx`select id from albums where id = ${albumId} and photographer_id = ${photographerId} for update`;
+      if (!a) throw new DataError("not_found");
+      const [{ next }] = await tx<{ next: number }[]>`select coalesce(max(number), 0)::int + 1 as next from album_versions where album_id = ${albumId}`;
+      const [v] = await tx<{ id: string }[]>`
+        insert into album_versions (album_id, number, note) values (${albumId}, ${next}, ${input.note?.trim() || null}) returning id`;
+      await tx`insert into album_spreads ${tx(input.spreads.map((s, i) => ({
+        version_id: v.id, position: i + 1, image_key: s.imageKey, width: s.width, height: s.height,
+      })))}`;
+      return (await loadAlbum(albumId, false, tx))!.versions[0];
+    }));
+  },
+
+  async addSpreadComment(galleryId, spreadId, input) {
+    if (!isUuid(spreadId)) throw new DataError("not_found");
+    const body = input.body.trim();
+    const inRange = (n: number | null) => n === null || (n >= 0 && n <= 1);
+    if (!body || body.length > 2000 || !inRange(input.x) || !inRange(input.y) || (input.x === null) !== (input.y === null)) {
+      throw new DataError("invalid");
+    }
+    const db = sql();
+    return guard(async () => {
+      const [s] = await db<{ status: string; isLatest: boolean }[]>`
+        select v.status, v.number = (select max(number) from album_versions where album_id = a.id) as is_latest
+        from album_spreads s join album_versions v on v.id = s.version_id join albums a on a.id = v.album_id
+        where s.id = ${spreadId} and a.gallery_id = ${galleryId}`;
+      if (!s) throw new DataError("not_found");
+      if (!s.isLatest || s.status !== "pending") throw new DataError("album_locked");
+      const [c] = await db<AlbumComment[]>`
+        insert into comments (gallery_id, album_spread_id, pos_x, pos_y, author, body)
+        values (${galleryId}, ${spreadId}, ${input.x}, ${input.y}, 'client', ${body})
+        returning id, album_spread_id as spread_id, pos_x as x, pos_y as y, author, body, created_at`;
+      return c;
+    });
+  },
+
+  async decideAlbumVersion(galleryId, versionId, decision) {
+    if (!isUuid(versionId)) throw new DataError("not_found");
+    const db = sql();
+    return guard(() => db.begin(async (tx): Promise<AlbumVersion> => {
+      const [v] = await tx<{ albumId: string; status: string; isLatest: boolean }[]>`
+        select v.album_id, v.status, v.number = (select max(number) from album_versions where album_id = v.album_id) as is_latest
+        from album_versions v join albums a on a.id = v.album_id
+        where v.id = ${versionId} and a.gallery_id = ${galleryId} for update of v`;
+      if (!v) throw new DataError("not_found");
+      if (!v.isLatest || v.status !== "pending") throw new DataError("album_locked");
+      await tx`update album_versions set status = ${decision}, decided_at = now() where id = ${versionId}`;
+      return (await loadAlbum(v.albumId, false, tx))!.versions[0];
+    }));
+  },
+
   listComments: (galleryId) => sql()<Comment[]>`
     select id, gallery_id, photo_id, author, body, created_at from comments where gallery_id = ${galleryId} and album_spread_id is null order by created_at`,
 
@@ -410,3 +507,31 @@ export const pgData: DataLayer = {
     });
   },
 };
+
+type Tx = ReturnType<typeof sql>;
+
+/** Monta o álbum: versões (mais nova primeiro), lâminas em ordem e comentários com o ponto. */
+async function loadAlbum(albumId: string, latestOnly: boolean, db: Tx = sql()): Promise<Album | null> {
+  const [a] = await db<Omit<Album, "versions">[]>`select id, gallery_id, photographer_id, title, created_at from albums where id = ${albumId}`;
+  if (!a) return null;
+  const versions = await db<Omit<AlbumVersion, "spreads">[]>`
+    select id, number, status, note, decided_at, created_at from album_versions where album_id = ${albumId}
+    order by number desc ${latestOnly ? db`limit 1` : db``}`;
+  const ids = versions.map((v) => v.id);
+  const spreads = ids.length ? await db<(Omit<import("./types").AlbumSpread, "comments"> & { versionId: string })[]>`
+    select id, version_id, position, image_key, width, height from album_spreads where version_id in ${db(ids)} order by position` : [];
+  const sIds = spreads.map((s) => s.id);
+  const comments = sIds.length ? await db<AlbumComment[]>`
+    select id, album_spread_id as spread_id, pos_x as x, pos_y as y, author, body, created_at
+    from comments where album_spread_id in ${db(sIds)} order by created_at` : [];
+  return {
+    ...a,
+    versions: versions.map((v) => ({
+      ...v,
+      spreads: spreads.filter((s) => s.versionId === v.id).map((s) => ({
+        id: s.id, position: s.position, imageKey: s.imageKey, width: s.width, height: s.height,
+        comments: comments.filter((c) => c.spreadId === s.id),
+      })),
+    })),
+  };
+}
