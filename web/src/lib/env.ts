@@ -5,7 +5,9 @@ const has = (...k: string[]) => k.every((x) => !!process.env[x]);
 
 export const env = {
   get appUrl() {
-    return (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+    // APP_URL tem que existir no BUILD (páginas estáticas usam no og:image); na Vercel, cai no domínio de produção dela
+    const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null;
+    return (process.env.APP_URL ?? vercel ?? "http://localhost:3000").replace(/\/$/, "");
   },
   get auth(): "supabase" | "demo" {
     return has("NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY") ? "supabase" : "demo";

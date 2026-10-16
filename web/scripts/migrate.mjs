@@ -6,9 +6,10 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import postgres from "postgres";
 
-const url = process.env.DATABASE_URL;
+// Em produção, use a conexão DIRETA do Supabase (porta 5432) para migrar: MIGRATION_DATABASE_URL.
+const url = process.env.MIGRATION_DATABASE_URL ?? process.env.DATABASE_URL;
 if (!url) {
-  console.error("DATABASE_URL não definido");
+  console.error("MIGRATION_DATABASE_URL / DATABASE_URL não definido");
   process.exit(1);
 }
 const sql = postgres(url, { max: 1, onnotice: () => {} });

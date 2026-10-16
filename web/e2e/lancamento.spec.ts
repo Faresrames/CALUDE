@@ -28,3 +28,10 @@ test.describe("Lançamento: página de vendas, privacidade, termos, plano", () =
     await a11y(page);
   });
 });
+
+test("imagem social aponta para o endereço público e abre", async ({ page, request }) => {
+  await page.goto("/");
+  const og = await page.locator('meta[property="og:image"]').getAttribute("content");
+  expect(og).toMatch(/^http:\/\/localhost:3460\/opengraph-image/); // APP_URL do teste
+  expect((await request.get(new URL(og!).pathname + new URL(og!).search)).status()).toBe(200);
+});

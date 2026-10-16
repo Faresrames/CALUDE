@@ -15,7 +15,9 @@
     "db:migrate": "node scripts/migrate.mjs",
     "db:seed": "tsx scripts/seed.ts",
     "test": "tsx --test test/*.test.mts",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "preflight": "node scripts/preflight.mjs",
+    "vercel-build": "node scripts/preflight.mjs && node scripts/migrate.mjs && next build"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.716.0",
