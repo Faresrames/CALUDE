@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { body, fail, handle, photographerOr401, unauthorized } from "@/lib/api";
-import { data } from "@/lib/data";
+import { data, DataError } from "@/lib/data";
 import { uploadsBody } from "@/lib/schemas";
 import { storage } from "@/lib/storage";
 
@@ -13,6 +13,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!b) return fail("invalid", "Mande de 1 a 50 arquivos por vez.");
   return handle(async () => {
     const existing = new Set(await data.existingBasenames(p.id, id));
+    const fresh = b.files.filter((f) => !existing.has(f.name.replace(/\.[^.]+$/, ""))).length;
+    const { used, limit } = await data.photoUsage(p.id);
+    if (used + fresh > limit) throw new DataError("plan_limit");
     return {
       files: await Promise.all(b.files.map(async (f) => {
         if (existing.has(f.name.replace(/\.[^.]+$/, ""))) return { name: f.name, skip: true };

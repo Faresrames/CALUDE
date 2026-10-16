@@ -1,0 +1,28 @@
+{
+  "_about": "RASCUNHO para quando o Farol virar app nas lojas (hoje é web). Conferido com listing.py.",
+  "avoid": [
+    "Select",
+    "EPICS",
+    "EPICS Select",
+    "Selpics",
+    "Picsize",
+    "Alboom",
+    "YouFocus",
+    "46graus",
+    "PhotoSelect",
+    "Seleto Foto"
+  ],
+  "app_store": {
+    "name": "Farol: Seleção de Fotos",
+    "subtitle": "Galeria para seu cliente",
+    "promotional_text": "Seu cliente escolhe as fotos pelo celular e cada toque fica salvo. Você recebe a lista pronta para o Lightroom.",
+    "description": "O Farol é a seleção de fotos para fotógrafos de casamento.\n\nVocê sobe as prévias do evento com a sua marca d'água e manda o link. Seu cliente escolhe as fotos pelo celular, sem criar conta. Cada toque fica salvo. Quando ele termina, você recebe um e-mail e a lista sai pronta para colar no filtro do Lightroom.\n\nO que vem junto:\n- Pacote com fotos extras pagas por PIX direto para você\n- Favoritas e comentários por foto\n- Prazo com horário claro e lembretes automáticos\n- Aprovação do álbum com comentário em cada página\n- Seu logo como marca d'água\n\nPreço fixo por mês, sem créditos. 14 dias grátis.",
+    "keywords": "fotografo,casamento,selecao,album,lightroom,prova,ensaio,noivos,extras,marca dagua",
+    "whats_new": "Aprovação de álbum: o cliente comenta num ponto da página."
+  },
+  "google_play": {
+    "title": "Farol: Seleção de Fotos",
+    "short_description": "Seu cliente escolhe as fotos pelo celular. Você recebe a lista pronta.",
+    "full_description": "O Farol é a seleção de fotos para fotógrafos de casamento.\n\nVocê sobe as prévias do evento com a sua marca d'água e manda o link. Seu cliente escolhe as fotos pelo celular, sem criar conta. Cada toque fica salvo. Quando ele termina, você recebe um e-mail e a lista sai pronta para colar no filtro do Lightroom.\n\nPreço fixo por mês, sem créditos. 14 dias grátis."
+  }
+}

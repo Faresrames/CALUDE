@@ -12,6 +12,7 @@ export async function subscribe(_prev: PlanState, form: FormData): Promise<PlanS
   const p = await requirePhotographer();
   if (env.billing !== "asaas") return { error: "Pagamentos ainda não configurados (Asaas)." };
   const plan = planById(String(form.get("plan")));
+  const cycle = form.get("cycle") === "yearly" ? "yearly" : "monthly";
   const doc = String(form.get("cpfCnpj") ?? "").replace(/\D/g, "");
   if (!plan) return { error: "Escolha um plano." };
   if (doc.length !== 11 && doc.length !== 14) return { error: "Informe um CPF ou CNPJ válido para a nota." };
@@ -22,7 +23,8 @@ export async function subscribe(_prev: PlanState, form: FormData): Promise<PlanS
     const customerId = sub.providerCustomerId ?? (await asaas.createCustomer({ name: p.businessName ?? p.name, email: p.email, cpfCnpj: doc, externalReference: p.id })).id;
     const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
     const s = await asaas.createSubscription({
-      customer: customerId, valueCents: plan.priceCents, description: `Plano ${plan.name}`, externalReference: p.id, nextDueDate: today,
+      customer: customerId, valueCents: cycle === "yearly" ? plan.yearlyCents : plan.monthlyCents, cycle,
+      description: `Farol ${plan.name} (${cycle === "yearly" ? "anual" : "mensal"})`, externalReference: p.id, nextDueDate: today,
     });
     await data.linkSubscription(p.id, plan.id, customerId, s.id);
     invoice = await asaas.firstInvoiceUrl(s.id);

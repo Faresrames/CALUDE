@@ -11,6 +11,7 @@ const messages: Record<DataErrorCode, [number, string]> = {
   package_full: [409, "Seu pacote já está completo. Para trocar, desmarque uma foto antes."],
   comments_off: [403, "Comentários desligados nesta galeria."],
   album_locked: [409, "Esta versão do álbum já foi decidida. Espere a próxima versão do fotógrafo."],
+  plan_limit: [402, "Essas fotos passam do limite do seu plano. Arquive galerias antigas ou mude de plano em Plano."],
   plan_inactive: [402, "Seu período de teste acabou. Escolha um plano para criar galerias novas."],
   invalid: [400, "Dados inválidos."],
 };

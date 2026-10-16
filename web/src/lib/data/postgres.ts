@@ -2,6 +2,7 @@
 // photographer_id (autorização no código); a RLS do banco é a segunda trava.
 // Regras de seleção (travada, vencida, pacote cheio) ficam no trigger do banco.
 import { randomUUID } from "node:crypto";
+import { photoLimit } from "../billing/plans";
 import { hashPassword } from "./password";
 import { sql } from "./db";
 import {
@@ -214,6 +215,14 @@ export const pgData: DataLayer = {
     return rows.map((r) => r.basename);
   },
 
+  async photoUsage(photographerId) {
+    const [r] = await sql()<{ used: number; plan: import("./types").Plan }[]>`
+      select (select count(*)::int from photos p join galleries g on g.id = p.gallery_id
+              where p.photographer_id = ${photographerId} and g.status <> 'archived') as used,
+             (select plan from subscriptions where photographer_id = ${photographerId}) as plan`;
+    return { used: r?.used ?? 0, limit: photoLimit(r?.plan ?? "trial") };
+  },
+
   async addPhotos(photographerId, galleryId, inputs) {
     const db = sql();
     return guard(() => db.begin(async (tx): Promise<Photo[]> => {
@@ -229,6 +238,13 @@ export const pgData: DataLayer = {
         preview_key: i.previewKey, thumb_key: i.thumbKey, width: i.width, height: i.height, bytes: i.bytes,
       }));
       if (!rows.length) return [];
+      // limite do plano (segunda trava; a primeira é na emissão das URLs de envio)
+      const [u] = await tx<{ used: number; plan: import("./types").Plan }[]>`
+        select (select count(*)::int from photos p join galleries g2 on g2.id = p.gallery_id
+                where p.photographer_id = ${photographerId} and g2.status <> 'archived') as used,
+               (select plan from subscriptions where photographer_id = ${photographerId}) as plan`;
+      const limit = photoLimit(u.plan ?? "trial");
+      if (u.used + rows.length > limit) throw new DataError("plan_limit");
       const added = await tx<Photo[]>`
         insert into photos ${tx(rows)} on conflict (gallery_id, basename) do nothing returning ${tx.unsafe(PHOTO)}`;
       const bytes = added.reduce((s, p) => s + p.bytes, 0);

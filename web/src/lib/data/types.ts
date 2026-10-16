@@ -188,6 +188,7 @@ export type DataErrorCode =
   | "comments_off"
   | "plan_inactive"
   | "album_locked"
+  | "plan_limit"
   | "invalid";
 
 export class DataError extends Error {
@@ -217,6 +218,8 @@ export interface DataLayer {
 
   listPhotos(galleryId: string): Promise<Photo[]>;
   existingBasenames(photographerId: string, galleryId: string): Promise<string[]>;
+  /** Fotos ativas (em galerias não arquivadas) e o limite do plano atual. */
+  photoUsage(photographerId: string): Promise<{ used: number; limit: number }>;
   addPhotos(photographerId: string, galleryId: string, photos: NewPhotoInput[]): Promise<Photo[]>;
 
   listSelections(galleryId: string): Promise<Selection[]>;

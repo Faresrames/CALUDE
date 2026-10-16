@@ -286,3 +286,30 @@ describe("marca d'água", () => {
     assert.equal(await code(data.updatePhotographer(p.id, { watermarkPosition: "topo" as never })), "invalid");
   });
 });
+
+describe("limite de fotos do plano", () => {
+  test("teste grátis = 30 mil; plano Começo = 5 mil; lote que passa é recusado inteiro", async () => {
+    const p = await photographer("limite@x.com");
+    assert.deepEqual(await data.photoUsage(p.id), { used: 0, limit: 30000 });
+    const { g } = await sentGallery(p.id, {}, 3);
+    await sql()`update subscriptions set plan = 'starter', status = 'active' where photographer_id = ${p.id}`;
+    assert.deepEqual(await data.photoUsage(p.id), { used: 3, limit: 5000 });
+    // simula estar no limite: 4.998 fotos de outra galeria
+    const big = await data.createGallery(p.id, base);
+    await sql()`insert into photos (gallery_id, photographer_id, original_filename, basename, position, preview_key, thumb_key)
+      select ${big.id}, ${p.id}, 'X_' || i || '.jpg', 'X_' || i, i, 'k', 'k' from generate_series(1, 4995) i`;
+    assert.equal((await data.photoUsage(p.id)).used, 4998);
+    assert.equal(await code(data.addPhotos(p.id, g.id, photos(3, "NOVA"))), "plan_limit");
+    assert.equal((await data.addPhotos(p.id, g.id, photos(2, "CABE"))).length, 2);
+    // galeria arquivada não conta
+    await sql()`update galleries set status = 'archived' where id = ${big.id}`;
+    assert.equal((await data.photoUsage(p.id)).used, 5);
+  });
+
+  test("webhook: pagamento do valor anual estende 12 meses", async () => {
+    const p = await photographer("anual@x.com");
+    await data.linkSubscription(p.id, "pro", "cus_a", "sub_a");
+    await applyAsaasEvent({ id: "evt_a1", event: "PAYMENT_CONFIRMED", payment: { id: "pay_a1", subscription: "sub_a", dueDate: "2026-10-16", value: 590 } });
+    assert.equal((await data.getSubscription(p.id)).currentPeriodEnd?.slice(0, 10), "2027-10-16");
+  });
+});

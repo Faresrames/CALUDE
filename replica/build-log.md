@@ -76,3 +76,9 @@ validada no schema), leitor de tela (axe) e Safari.
 - Nome de trabalho **Farol** (constante em `web/src/lib/brand.ts`); paleta azul-noite + âmbar (0 falhas de contraste);
   ícone provisório; 10 textos reescritos no tom; "Galeria por Farol" no rodapé do cliente; varredura limpa.
 - Checagens de marca e domínio: **a rodar** (INPI, registro.br). Detalhes em `replica/brand.md`.
+
+## /replica-launch (2026-10-16)
+
+- Página de vendas em `/`, privacidade e termos (rascunhos para advogado), planos por fotos ativas com mensal/anual,
+  limite de fotos aplicado no envio, tela de Plano com uso. +2 testes de dados, +5 specs (42 e 23 passando).
+- Documentos em `replica/launch/`: pricing, landing, listing (0 erros, 0 avisos), launch-plan.

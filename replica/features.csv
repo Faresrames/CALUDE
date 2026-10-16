@@ -39,3 +39,5 @@ Cobrança fixa sem créditos e aviso antes de cada cobrança,saas,should,no,part
 Entrega automática das fotos pagas,entrega,should,no,no,fix: 'Fotos pagas e não entregues' (Alboom); depende da entrega final S18
 Suporte com prazo de resposta visível no painel,confiança,should,no,no,fix: suporte 2/14 (thin)
 Exportar tudo e importar clientes (sem prisão),conta,could,no,no,fix: troca de plataforma 3/14 (2 fontes)
+Limite de fotos ativas por plano com aviso antes do envio,saas,should,yes,yes,launch: plans.ts + photoUsage; teste de dados
+Página de vendas e páginas legais (LGPD),saas,must,yes,yes,"launch: /, /privacidade, /termos (rascunhos para advogado)"

@@ -75,7 +75,8 @@ export default async function EntrarPage({ searchParams }: { searchParams: Promi
                 <Field label="E-mail" name="email" type="email" autoComplete="email" required error={error} />
                 <Button type="submit" size="lg">Mandar link de acesso</Button>
               </form>
-              <p className="text-xs text-muted">Sem senha para lembrar. Primeira vez? A conta é criada no primeiro acesso, com 14 dias grátis.</p>
+              <p className="text-xs text-muted">Sem senha para lembrar. Primeira vez? A conta é criada no primeiro acesso, com 14 dias grátis.
+                Ao entrar, você concorda com os <a href="/termos" className="underline">termos de uso</a> e a <a href="/privacidade" className="underline">política de privacidade</a>.</p>
             </div>
           )
         ) : (

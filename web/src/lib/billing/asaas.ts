@@ -19,9 +19,9 @@ export const asaas = {
     call<{ id: string }>("POST", "/customers", { ...c, notificationDisabled: false }),
 
   /** billingType UNDEFINED: o fotógrafo escolhe PIX, boleto ou cartão na fatura do Asaas. */
-  createSubscription: (s: { customer: string; valueCents: number; description: string; externalReference: string; nextDueDate: string }) =>
+  createSubscription: (s: { customer: string; valueCents: number; cycle: "monthly" | "yearly"; description: string; externalReference: string; nextDueDate: string }) =>
     call<{ id: string }>("POST", "/subscriptions", {
-      customer: s.customer, billingType: "UNDEFINED", cycle: "MONTHLY", value: s.valueCents / 100,
+      customer: s.customer, billingType: "UNDEFINED", cycle: s.cycle === "yearly" ? "YEARLY" : "MONTHLY", value: s.valueCents / 100,
       nextDueDate: s.nextDueDate, description: s.description, externalReference: s.externalReference,
     }),
 

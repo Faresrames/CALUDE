@@ -1,17 +1,19 @@
 // Aplica um evento de webhook do Asaas na assinatura. Idempotente: cada evento uma vez só.
 // O status mora no nosso banco, atualizado só por aqui; a tela nunca confia no navegador.
 import { data, type Subscription } from "../data";
+import { PLANS } from "./plans";
 
 export type AsaasEvent = {
   id?: string;
   event: string;
-  payment?: { id: string; subscription?: string | null; dueDate?: string; status?: string };
+  payment?: { id: string; subscription?: string | null; dueDate?: string; status?: string; value?: number };
   subscription?: { id: string };
 };
 
-const addMonth = (day: string) => {
+/** Fim do período pago: vencimento + 1 mês, ou + 12 meses se o valor for de plano anual. */
+const periodEnd = (day: string, yearly: boolean) => {
   const d = new Date(`${day}T12:00:00Z`);
-  d.setUTCMonth(d.getUTCMonth() + 1);
+  d.setUTCMonth(d.getUTCMonth() + (yearly ? 12 : 1));
   return d.toISOString();
 };
 
@@ -25,7 +27,12 @@ export async function applyAsaasEvent(e: AsaasEvent): Promise<"applied" | "dupli
   switch (e.event) {
     case "PAYMENT_CONFIRMED":
     case "PAYMENT_RECEIVED":
-      patch = { status: "active", currentPeriodEnd: e.payment?.dueDate ? addMonth(e.payment.dueDate) : null };
+      patch = {
+        status: "active",
+        currentPeriodEnd: e.payment?.dueDate
+          ? periodEnd(e.payment.dueDate, PLANS.some((p) => Math.round((e.payment?.value ?? 0) * 100) === p.yearlyCents))
+          : null,
+      };
       break;
     case "PAYMENT_OVERDUE":
       patch = { status: "past_due" };

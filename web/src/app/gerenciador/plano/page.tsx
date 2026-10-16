@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Plano" };
 
 export default async function PlanoPage({ searchParams }: { searchParams: Promise<{ cancelado?: string; aguardando?: string }> }) {
   const p = await requirePhotographer();
-  const sub = await data.getSubscription(p.id);
+  const [sub, usage] = await Promise.all([data.getSubscription(p.id), data.photoUsage(p.id)]);
   const { cancelado, aguardando } = await searchParams;
   const daysLeft = Math.ceil((new Date(sub.trialEndsAt).getTime() - Date.now()) / 864e5);
   const plan = planById(sub.plan);
@@ -23,7 +23,13 @@ export default async function PlanoPage({ searchParams }: { searchParams: Promis
   return (
     <div className="flex flex-col gap-6">
       <h1 className="font-display text-xl text-ink">Plano</h1>
-      <p role="status" className="rounded-lg border border-line bg-raised p-4 text-ink">{line}</p>
+      <div role="status" className="flex flex-col gap-2 rounded-lg border border-line bg-raised p-4 text-ink">
+        <p>{line}</p>
+        <p className="text-sm text-muted">Você usa {usage.used.toLocaleString("pt-BR")} de {usage.limit.toLocaleString("pt-BR")} fotos ativas.</p>
+        <div className="h-1.5 overflow-hidden rounded-pill bg-surface" aria-hidden>
+          <div className="h-full rounded-pill bg-accent" style={{ width: `${Math.min(100, (usage.used / usage.limit) * 100)}%` }} />
+        </div>
+      </div>
       {cancelado && <p className="text-sm text-muted">Cancelado. Obrigado por ter usado.</p>}
       {aguardando && <p className="text-sm text-muted">Assinatura criada. Assim que o pagamento for confirmado, o plano aparece como ativo.</p>}
       {env.billing === "off" && (

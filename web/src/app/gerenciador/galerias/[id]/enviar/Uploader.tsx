@@ -67,6 +67,12 @@ export function Uploader({ galleryId, watermark, startCount }: { galleryId: stri
           break;
         }
         if (!res.ok) {
+          const msg = ((await res.json().catch(() => ({}))) as { error?: string; message?: string });
+          if (msg.error === "plan_limit") {
+            list.slice(i).forEach((b) => patch(b.id, { status: "error", error: "Limite do plano" }));
+            toast("error", msg.message ?? "Limite do plano atingido.");
+            break;
+          }
           batch.forEach((b) => patch(b.id, { status: "error", error: "Servidor recusou" }));
           continue;
         }
