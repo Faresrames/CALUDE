@@ -21,10 +21,10 @@ test.describe("F02 cliente escolhe as fotos", () => {
     await c.getByRole("link", { name: "Revisar e enviar" }).click();
     await a11y(c); // S14
     await c.getByRole("button", { name: "Enviar 4 fotos" }).click();
-    await expect(c.getByRole("heading", { name: "Seleção enviada!" })).toBeVisible();
+    await expect(c.getByRole("heading", { name: "Seleção enviada" })).toBeVisible();
     await a11y(c); // S16
     await c.goto(`/g/${token}`);
-    await expect(c.getByText("Sua seleção já foi enviada")).toBeVisible();
+    await expect(c.getByText(/Sua seleção já foi enviada/)).toBeVisible();
     await expect(c.getByRole("button", { name: /^Selecionar / })).toHaveCount(0);
     const [g] = await db`select status from galleries where id = ${id}`;
     expect(g.status).toBe("submitted");
@@ -72,7 +72,7 @@ test.describe("F02 cliente escolhe as fotos", () => {
     await c.goto(`/g/${token}`);
     await ctx.setOffline(true);
     await c.getByRole("button", { name: "Selecionar IMG_1" }).click();
-    await expect(c.getByText(/Sem conexão/)).toBeVisible();
+    await expect(c.getByText(/A internet caiu/)).toBeVisible();
     await expect(c.getByRole("button", { name: "Selecionar IMG_1" })).toBeVisible();
     await ctx.setOffline(false);
   });
@@ -111,7 +111,7 @@ test.describe("F02 cliente escolhe as fotos", () => {
     for (const n of ["IMG_1", "IMG_2", "IMG_3"]) await choose(c, n);
     await c.goto(`/g/${token}/revisar`);
     await c.getByRole("button", { name: "Enviar 3 fotos" }).dblclick();
-    await expect(c.getByRole("heading", { name: "Seleção enviada!" })).toBeVisible();
+    await expect(c.getByRole("heading", { name: "Seleção enviada" })).toBeVisible();
     const [{ n }] = await db`select count(*)::int as n from orders where gallery_id = ${id}`;
     expect(n).toBe(1);
   });
@@ -157,7 +157,7 @@ test.describe("F02 cliente escolhe as fotos", () => {
     await c.waitForURL("**/revisar");
     await c.getByRole("button", { name: "Enviar 1 foto" }).focus();
     await c.keyboard.press("Enter");
-    await expect(c.getByRole("heading", { name: "Seleção enviada!" })).toBeVisible();
+    await expect(c.getByRole("heading", { name: "Seleção enviada" })).toBeVisible();
   });
 
   test("F02-E12 celular: nenhuma tela do cliente rola para o lado", async ({ page, browser }) => {

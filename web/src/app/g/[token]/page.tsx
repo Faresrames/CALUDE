@@ -36,7 +36,7 @@ export default async function ClientGalleryPage({ params }: { params: Promise<{ 
           {g.allowExtras && g.extraPriceCents > 0 ? `; cada foto a mais custa ${formatBRL(g.extraPriceCents)}` : ""}.
           {g.deadlineAt && !locked ? ` Prazo: ${formatDeadline(g.deadlineAt)}.` : ""}
         </p>
-        <p className="text-sm text-muted">Toque no círculo para escolher, no coração para favoritar. Tudo é salvo na hora.</p>
+        <p className="text-sm text-muted">Toque no círculo para escolher e no coração para guardar as favoritas. Cada toque fica salvo: pode parar e voltar quando quiser.</p>
         {album?.versions.length ? (
           <Link href={`/g/${token}/album`} className="self-start text-sm font-semibold text-ink underline">
             {album.versions[0].status === "pending" ? "Seu álbum está pronto para revisar →" : "Ver o álbum →"}

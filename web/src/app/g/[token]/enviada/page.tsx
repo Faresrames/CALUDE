@@ -17,9 +17,9 @@ export default async function EnviadaPage({ params }: { params: Promise<{ token:
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col items-center justify-center gap-4 px-4 py-12 text-center">
       <CheckCircle2 aria-hidden className="size-12 text-success" />
-      <h1 className="font-display text-xl text-ink">Seleção enviada!</h1>
+      <h1 className="font-display text-xl text-ink">Seleção enviada</h1>
       <p className="text-muted">
-        O fotógrafo recebeu as suas {g.selectedCount} fotos e já pode começar o tratamento.
+        Pronto. O fotógrafo já recebeu as suas {g.selectedCount} fotos e pode começar o tratamento.
       </p>
       {extras > 0 && (
         <p className="rounded-md bg-surface p-3 text-sm text-ink">

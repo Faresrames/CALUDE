@@ -104,6 +104,10 @@ Status: fixed in c15883b (h2)
 
 ## Para conferir (não reproduzido)
 
+- 2026-10-16: F03-E2 (reabrir e reenviar) estourou o tempo de 60 s uma vez, numa rodada lenta da suíte (2,5 min contra 1,5 min
+  normal). Não reproduziu em 16 execuções seguidas do arquivo nem em 1 rodada completa (37/37). O registro da falha se perdeu
+  nas rodadas seguintes. Se voltar: guardar o trace (`test-results/`) e olhar se o "Reabrir" demora a refletir no painel.
+
 - Safari antigo (anterior ao 16.4) não tem OffscreenCanvas no worker: o envio falharia. Conferir no iPhone/Mac do fotógrafo (M-6).
 - Com várias instâncias na Vercel, o limite de tentativas de senha vale por instância (memória). Trocar por Upstash antes de escalar.
 - No R2, a URL de envio não limita o tamanho do arquivo (ver `replica/backend.md`).

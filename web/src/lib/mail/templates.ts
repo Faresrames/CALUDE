@@ -5,7 +5,7 @@ import type { Mail } from "./index";
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 // E-mail não usa as variáveis CSS do app; estes valores espelham os tokens (replica/design/tokens.json).
-const C = { bg: "#fbfaf8", text: "#1c1a17", muted: "#625c53", accent: "#2b2926", onAccent: "#ffffff", line: "#e4e0d9" };
+const C = { bg: "#fbfaf8", text: "#1c1a17", muted: "#625c53", accent: "#1c2d47", onAccent: "#ffffff", line: "#e4e0d9" };
 
 function layout(title: string, paragraphs: string[], cta?: { label: string; url: string }, footer?: string) {
   const html = `<!doctype html><html lang="pt-BR"><body style="margin:0;background:${C.bg};font-family:Inter,Segoe UI,Arial,sans-serif;color:${C.text}">
@@ -26,10 +26,10 @@ export function gallerySentMail(to: string, g: G): Mail {
   const hello = g.clientName ? `Oi, ${g.clientName}!` : "Oi!";
   const body = layout(`Suas fotos chegaram`, [
     `${hello} ${g.studio} separou as fotos de “${g.title}” para você escolher.`,
-    `Escolha ${g.packageSize} fotos para o seu pacote. Dá para fazer pelo celular, com calma: cada foto marcada fica salva na hora.`,
+    `Escolha ${g.packageSize} fotos para o seu pacote. Dá para fazer pelo celular, com calma: cada toque fica salvo, pode parar e voltar quando quiser.`,
     ...(g.deadlineAt ? [`Prazo para escolher: ${formatDeadline(g.deadlineAt)}.`] : []),
   ], { label: "Escolher minhas fotos", url: g.url }, `Enviado por ${g.studio}. Responda este e-mail para falar com o fotógrafo.`);
-  return { to, subject: `Escolha suas fotos: ${g.title}`, ...body };
+  return { to, subject: `Suas fotos chegaram: ${g.title}`, ...body };
 }
 
 export function reminderMail(to: string, g: G, kind: "reminder" | "deadline_tomorrow"): Mail {

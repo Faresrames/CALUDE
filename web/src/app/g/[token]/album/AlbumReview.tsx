@@ -22,7 +22,7 @@ export function AlbumReview({ token, versionId, number, locked, spreads: initial
       method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ spreadId, x, y, body }),
     }).catch(() => null);
     const json = r ? await r.json().catch(() => ({})) : {};
-    if (!r?.ok) { toast("error", json.message ?? "Sem conexão. O comentário não foi salvo."); return false; }
+    if (!r?.ok) { toast("error", json.message ?? "A internet caiu e o comentário não foi salvo. Tente de novo quando a conexão voltar."); return false; }
     setSpreads((xs) => xs.map((s) => (s.id === spreadId ? { ...s, comments: [...s.comments, { id: json.id, x, y, body: json.body, author: "client" }] } : s)));
     return true;
   }

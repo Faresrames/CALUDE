@@ -6,9 +6,9 @@ import { data, DataError, type DataErrorCode } from "./data";
 
 const messages: Record<DataErrorCode, [number, string]> = {
   not_found: [404, "Não encontrado."],
-  gallery_locked: [409, "Esta seleção já foi enviada. Fale com o fotógrafo para reabrir."],
-  gallery_expired: [409, "O prazo para escolher terminou. Fale com o fotógrafo para estender."],
-  package_full: [409, "O pacote está completo. Desmarque uma foto para escolher outra."],
+  gallery_locked: [409, "Esta seleção já foi enviada. Se quiser mudar algo, peça ao fotógrafo para reabrir."],
+  gallery_expired: [409, "O prazo para escolher terminou. Peça ao fotógrafo mais alguns dias: suas escolhas continuam salvas."],
+  package_full: [409, "Seu pacote já está completo. Para trocar, desmarque uma foto antes."],
   comments_off: [403, "Comentários desligados nesta galeria."],
   album_locked: [409, "Esta versão do álbum já foi decidida. Espere a próxima versão do fotógrafo."],
   plan_inactive: [402, "Seu período de teste acabou. Escolha um plano para criar galerias novas."],

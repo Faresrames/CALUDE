@@ -1,0 +1,7 @@
+{
+  "_about": "Usado por sweep.py, listing.py e replica-deploy. 'avoid': nomes do original e da concorrência que não podem aparecer no app. 'Select' sozinho não entra (é palavra de código: <select>, SQL); ver a checagem extra em replica/brand.md. 'colors': as cores do Select não foram vistas (sem prints); preencher quando houver.",
+  "name": "Farol",
+  "avoid": ["EPICS", "EPICS Select", "Select 2.0", "Selpics", "Picsize", "Alboom", "YouFocus", "46graus", "PhotoSelect", "Seleto Foto"],
+  "domains": ["select.pics", "epics.com.br", "epics.pro", "selpics.com", "picsize.com.br", "alboompro.com", "youfocus.com.br"],
+  "colors": []
+}

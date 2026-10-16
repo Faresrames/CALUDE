@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "Seleção de fotos",
-  description: "Galerias de seleção de fotos para fotógrafos",
+  title: { default: BRAND.name, template: `%s · ${BRAND.name}` },
+  description: BRAND.tagline,
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

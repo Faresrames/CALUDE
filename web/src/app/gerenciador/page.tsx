@@ -70,8 +70,8 @@ export default async function GerenciadorPage({ searchParams }: { searchParams: 
             body="Nenhuma galeria com esse filtro. Tente outro nome ou veja todas."
             action={<Link href="/gerenciador" className="text-sm font-semibold text-ink underline">Ver todas</Link>} />
         ) : (
-          <EmptyState icon={<FolderOpen className="size-8" />} title="Nenhuma galeria ainda"
-            body="Crie a primeira, suba as fotos do evento e mande o link para o cliente escolher."
+          <EmptyState icon={<FolderOpen className="size-8" />} title="Tudo pronto para a primeira galeria"
+            body="Suba as fotos do evento e mande o link. A gente avisa quando a seleção chegar."
             action={<Link href="/gerenciador/galerias/nova" className="inline-flex h-10 items-center rounded-md bg-accent px-4 text-sm font-semibold text-on-accent">Nova galeria</Link>} />
         )
       ) : (

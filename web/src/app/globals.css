@@ -22,6 +22,8 @@
   --color-selected: var(--c-selected);
   --color-on-selected: var(--c-on-selected);
   --color-favorite: var(--c-favorite);
+  --color-brand-glow: var(--c-brand-glow);
+  --color-on-brand-glow: var(--c-on-brand-glow);
   --color-favorite-dark: var(--c-favorite-on-dark);
   --color-danger: var(--c-danger);
   --color-on-danger: var(--c-on-danger);

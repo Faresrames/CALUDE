@@ -6,7 +6,7 @@ test.describe("F01 fotógrafo cria e envia a galeria", () => {
     await expect(page).toHaveURL(/\/entrar$/);
     await a11y(page); // S01
     await login(page);
-    await expect(page.getByText("Nenhuma galeria ainda")).toBeVisible();
+    await expect(page.getByText("Tudo pronto para a primeira galeria")).toBeVisible();
     await a11y(page); // S02 vazio
     await page.getByRole("link", { name: "Nova galeria" }).first().click();
     await a11y(page); // S03
@@ -21,7 +21,7 @@ test.describe("F01 fotógrafo cria e envia a galeria", () => {
     await a11y(page); // S05
     const [g] = await db`select access_token from galleries where id = ${id}`;
     const mail = outbox().find((m) => m.to === "cliente-h1@teste.com");
-    expect(mail?.subject).toBe("Escolha suas fotos: Casamento Teste");
+    expect(mail?.subject).toBe("Suas fotos chegaram: Casamento Teste");
     expect(mail?.text).toContain(`/g/${g.access_token}`);
     await page.goto("/gerenciador");
     await a11y(page); // S02 com galeria

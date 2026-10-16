@@ -6,6 +6,7 @@ import { Field } from "@/components/ui/Field";
 import { rateLimited } from "@/lib/api";
 import { currentPhotographer, demoSignIn } from "@/lib/auth";
 import { supabaseServer } from "@/lib/auth/supabase";
+import { BRAND } from "@/lib/brand";
 import { env } from "@/lib/env";
 
 export const metadata: Metadata = { title: "Entrar" };
@@ -55,8 +56,9 @@ export default async function EntrarPage({ searchParams }: { searchParams: Promi
   return (
     <main className="grid min-h-dvh place-items-center px-4 py-12">
       <div className="w-full max-w-sm">
+        <p className="text-sm font-semibold tracking-wide text-ink">{BRAND.name}</p>
         <h1 className="font-display text-display text-ink">Entrar</h1>
-        <p className="mt-2 text-muted">Seu painel de galerias e seleções.</p>
+        <p className="mt-2 text-muted">Suas galerias e seleções, num lugar só.</p>
         {env.auth === "supabase" ? (
           enviado ? (
             <div role="status" className="mt-8 rounded-lg border border-line bg-raised p-6 shadow-card">

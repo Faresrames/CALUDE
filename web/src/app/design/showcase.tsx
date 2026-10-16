@@ -133,7 +133,7 @@ function Showcase() {
           <GalleryCard href="#" title="Batizado Theo" client="Carla Reis" eventDate="28/09/2026"
             status="expired" photos={180} selected={12} packageSize={30} deadline="venceu 10/10" />
         </div>
-        <EmptyState icon={<FolderOpen className="size-8" />} title="Nenhuma galeria ainda"
+        <EmptyState icon={<FolderOpen className="size-8" />} title="Tudo pronto para a primeira galeria"
           body="Crie a primeira, suba as fotos do evento e mande o link para o cliente escolher."
           action={<Button>Nova galeria</Button>} />
       </Section>

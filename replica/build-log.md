@@ -70,3 +70,9 @@ validada no schema), leitor de tela (axe) e Safari.
 - Migração 0002 (tamanho das lâminas, aviso "álbum decidido", padrão da marca d'água em diagonal).
 - Paridade 82,4 → 90,4; essenciais 13/13. +4 specs e +3 testes de dados, todos passando.
 - Pego antes de enviar: a posição padrão da marca d'água tinha virado "centro" (protege menos); voltou para diagonal.
+
+## /replica-brand (2026-10-16)
+
+- Nome de trabalho **Farol** (constante em `web/src/lib/brand.ts`); paleta azul-noite + âmbar (0 falhas de contraste);
+  ícone provisório; 10 textos reescritos no tom; "Galeria por Farol" no rodapé do cliente; varredura limpa.
+- Checagens de marca e domínio: **a rodar** (INPI, registro.br). Detalhes em `replica/brand.md`.

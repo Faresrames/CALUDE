@@ -55,7 +55,7 @@ export function ClientGallery(p: Props) {
     const json = res ? await res.json().catch(() => ({})) : {};
     if (!res?.ok) {
       setPhotos((xs) => xs.map((x) => (x.id === id ? { ...x, [key]: before[key] } : x)));
-      toast("error", json.message ?? "Sem conexão. A foto não foi salva; tente de novo.");
+      toast("error", json.message ?? "A internet caiu e essa foto não foi salva. Toque de novo quando a conexão voltar.");
       return;
     }
     setCount(json.count);
@@ -83,8 +83,8 @@ export function ClientGallery(p: Props) {
           <Lock aria-hidden className="mt-0.5 size-4 shrink-0 text-muted" />
           <p className="text-ink">
             {p.locked === "submitted"
-              ? "Sua seleção já foi enviada. Você pode ver as fotos, mas para mudar alguma coisa fale com o fotógrafo."
-              : "O prazo para escolher terminou. Fale com o fotógrafo para pedir mais tempo."}
+              ? "Sua seleção já foi enviada. Você pode rever as fotos; para mudar algo, peça ao fotógrafo para reabrir."
+              : "O prazo para escolher terminou. Peça ao fotógrafo mais alguns dias: suas escolhas continuam aqui."}
           </p>
         </div>
       )}

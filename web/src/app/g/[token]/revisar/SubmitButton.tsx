@@ -15,7 +15,7 @@ export function SubmitButton({ token, label }: { token: string; label: string })
         const res = await fetch(`/api/g/${token}/submit`, { method: "POST" }).catch(() => null);
         if (res?.ok) return router.push(`/g/${token}/enviada`);
         setBusy(false);
-        setError(((await res?.json().catch(() => ({}))) as { message?: string } | undefined)?.message ?? "Sem conexão. Tente de novo.");
+        setError(((await res?.json().catch(() => ({}))) as { message?: string } | undefined)?.message ?? "A internet caiu e a seleção não foi enviada. Tente de novo quando a conexão voltar.");
       }}>{label}</Button>
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}
     </div>

@@ -89,7 +89,7 @@ test.describe("F03 fotos extras e PIX", () => {
     await choose(c, "IMG_1");
     await choose(c, "IMG_2");
     await c.getByRole("button", { name: "Selecionar IMG_3" }).click();
-    await expect(c.getByText("O pacote está completo. Desmarque uma foto para escolher outra.")).toBeVisible();
+    await expect(c.getByText("Seu pacote já está completo. Para trocar, desmarque uma foto antes.")).toBeVisible();
     await expect(c.getByRole("button", { name: "Selecionar IMG_3" })).toBeVisible();
     const [{ n }] = await db`select count(*)::int as n from selections where gallery_id = ${id} and selected`;
     expect(n).toBe(2);
