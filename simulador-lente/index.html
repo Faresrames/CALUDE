@@ -3,574 +3,911 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Simulador de Lente 24-70</title>
+<title>Laboratório da Lente 24-70</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Caveat:wght@600&family=JetBrains+Mono:wght@500;700&family=Nunito+Sans:opsz,wght@6..12,400..800&display=swap">
 <style>
-/* Layout: o visor da câmera é a peça principal; ao lado, um painel com os anéis da lente; embaixo, a régua de profundidade de campo e a explicação */
+/* Layout: palco 3D grande no topo (o "visor"), anel da lente logo abaixo como controle principal, depois régua de nitidez, fotos tiradas, desafio e explicação */
 :root{
-  --bg:#e8ebed;
-  --surface:#f7f8f9;
-  --ink:#14181c;
-  --muted:#56626c;
-  --line:#cad2d8;
-  --accent:#9c5a00;
-  --accent-fill:#d98a00;
-  --sharp:#1f8455;
-  --sharp-fill:rgba(31,132,85,.16);
-  --off:#9aa5ae;
-  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
-  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --bg:#e5eef2;
+  --surface:#ffffff;
+  --ink:#16202b;
+  --muted:#566577;
+  --line:#cfdbe2;
+  --mint:#13a37f;
+  --mint-ink:#0b7a5f;
+  --pop:#ffc83a;
+  --sharp-fill:rgba(19,163,127,.16);
+  --off:#a3b1bd;
+  --f-display:"Bricolage Grotesque","Arial Rounded MT Bold","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Nunito Sans","Segoe UI",system-ui,sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --f-hand:"Caveat","Comic Sans MS",cursive;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#111416; --surface:#1a1e21; --ink:#e8ecee; --muted:#97a2ab; --line:#2c3237;
-    --accent:#f2a93b; --accent-fill:#f2a93b; --sharp:#4cc38a; --sharp-fill:rgba(76,195,138,.16); --off:#5d676f;
+    --bg:#0e141a; --surface:#17202a; --ink:#e8eff4; --muted:#93a3b3; --line:#27333f;
+    --mint:#2fd3a6; --mint-ink:#4fe0b8; --pop:#ffd35c; --sharp-fill:rgba(47,211,166,.16); --off:#55636f;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#111416; --surface:#1a1e21; --ink:#e8ecee; --muted:#97a2ab; --line:#2c3237;
-  --accent:#f2a93b; --accent-fill:#f2a93b; --sharp:#4cc38a; --sharp-fill:rgba(76,195,138,.16); --off:#5d676f;
+  --bg:#0e141a; --surface:#17202a; --ink:#e8eff4; --muted:#93a3b3; --line:#27333f;
+  --mint:#2fd3a6; --mint-ink:#4fe0b8; --pop:#ffd35c; --sharp-fill:rgba(47,211,166,.16); --off:#55636f;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+img{max-width:100%}
 body{
   margin:0; background:var(--bg); color:var(--ink);
   font-family:var(--f-body); font-size:16px; line-height:1.5;
   padding-left:max(16px, env(safe-area-inset-left, 0px));
   padding-right:max(16px, env(safe-area-inset-right, 0px));
-  padding-block:28px 48px;
+  padding-block:26px 56px;
 }
-.wrap{max-width:1180px; margin:0 auto; display:flex; flex-direction:column; gap:28px}
+.wrap{max-width:1120px; margin:0 auto; display:flex; flex-direction:column; gap:34px}
 
-header{display:flex; flex-direction:column; gap:6px}
-.eyebrow{font-family:var(--f-mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent)}
-h1{
-  font-family:var(--f-display); font-stretch:118%; font-weight:780;
-  font-size:clamp(30px, 5vw, 52px); line-height:1.02; margin:0; letter-spacing:-.01em;
-  text-wrap:balance;
+header{display:flex; flex-direction:column; gap:8px}
+.eyebrow{font-family:var(--f-mono); font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--mint-ink)}
+h1{font-family:var(--f-display); font-weight:800; font-size:clamp(34px,6vw,64px); line-height:.98; margin:0; letter-spacing:-.02em; text-wrap:balance}
+h1 .hl{background:var(--pop); color:#16202b; padding:0 .14em; border-radius:.14em; box-decoration-break:clone; -webkit-box-decoration-break:clone}
+.lede{margin:6px 0 0; color:var(--muted); font-size:18px; max-width:60ch}
+
+/* ---------- palco ---------- */
+.stage{display:flex; flex-direction:column; gap:16px}
+.viewer{
+  position:relative; width:100%; max-width:100%; aspect-ratio:3/2; border-radius:24px; overflow:hidden;
+  background:#a9cfe8; box-shadow:0 6px 0 rgba(22,32,43,.22), 0 36px 60px -34px rgba(0,0,0,.55);
+  touch-action:manipulation; cursor:crosshair; isolation:isolate;
 }
-h1 .mm{font-stretch:70%; font-weight:500; color:var(--muted)}
-.lede{margin:4px 0 0; color:var(--muted); max-width:62ch; font-size:17px}
-
-.studio{display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:20px; align-items:start}
-@media (max-width:900px){ .studio{grid-template-columns:minmax(0,1fr)} }
-
-/* Visor */
-.viewfinder{
-  position:relative; width:100%; max-width:100%; aspect-ratio:3/2; overflow:hidden;
-  border-radius:6px; background:#7b8a6a; isolation:isolate;
-  box-shadow:0 0 0 1px rgba(0,0,0,.25), 0 18px 40px -22px rgba(0,0,0,.55);
+@media (max-width:600px){ .viewer{aspect-ratio:4/5; border-radius:18px} }
+.viewer canvas{position:absolute; inset:0; width:100%; height:100%; display:block}
+.ov{position:absolute; inset:0; pointer-events:none; color:#fff}
+.chip{
+  display:inline-flex; align-items:center; gap:8px; background:rgba(14,18,24,.6); color:#fff;
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  border-radius:999px; padding:6px 12px; font:700 12.5px/1.2 var(--f-mono); letter-spacing:.03em; white-space:nowrap;
 }
-.viewfinder canvas{position:absolute; display:block}
-.vf-ui{position:absolute; inset:0; pointer-events:none; color:#fff; font-family:var(--f-mono)}
-.corner{position:absolute; width:22px; height:22px; border:2px solid rgba(255,255,255,.75)}
-.corner.tl{top:12px; left:12px; border-right:0; border-bottom:0}
-.corner.tr{top:12px; right:12px; border-left:0; border-bottom:0}
-.corner.bl{bottom:44px; left:12px; border-right:0; border-top:0}
-.corner.br{bottom:44px; right:12px; border-left:0; border-top:0}
+.chip b{color:var(--pop-fixed,#ffc83a); font-weight:700}
+.chip .dot{width:8px; height:8px; border-radius:50%; background:#57e39a; box-shadow:0 0 0 3px rgba(87,227,154,.25)}
+.ov-tl{position:absolute; top:14px; left:14px; display:flex; flex-direction:column; gap:8px; align-items:flex-start}
+.ov-tr{position:absolute; top:14px; right:14px}
+.hint-tap{animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-3px)}}
 .af{
-  position:absolute; width:46px; height:46px; margin:-23px 0 0 -23px;
-  border:2px solid #57e39a; border-radius:3px; box-shadow:0 0 0 1px rgba(0,0,0,.35);
-  transition:left .35s ease, top .35s ease;
+  position:absolute; width:54px; height:54px; margin:-27px 0 0 -27px; border-radius:6px;
+  border:2.5px solid #57e39a; box-shadow:0 0 0 1.5px rgba(0,0,0,.35), inset 0 0 0 1.5px rgba(0,0,0,.2);
 }
-.af-note{
-  position:absolute; top:14px; left:50%; transform:translateX(-50%);
-  background:rgba(0,0,0,.55); padding:4px 10px; border-radius:3px; font-size:12px; white-space:nowrap;
+.af.pulse{animation:afp .45s ease-out}
+@keyframes afp{0%{transform:scale(1.6); opacity:.2} 100%{transform:scale(1); opacity:1}}
+.af-lbl{position:absolute; top:60px; left:50%; transform:translateX(-50%); font:700 11px var(--f-mono); background:#57e39a; color:#0d2a1c; padding:2px 7px; border-radius:4px; white-space:nowrap}
+.cap{
+  position:absolute; left:0; right:0; bottom:26px; display:flex; flex-direction:column; align-items:center; gap:8px; padding:0 16px; text-align:center;
 }
-.vf-bar{
-  position:absolute; left:0; right:0; bottom:0; height:34px; display:flex; align-items:center; gap:18px;
-  padding:0 14px; background:linear-gradient(transparent, rgba(0,0,0,.6)); font-size:13px; letter-spacing:.04em;
-  text-shadow:0 1px 2px rgba(0,0,0,.6); flex-wrap:nowrap; overflow:hidden;
+.cap-big{
+  font-family:var(--f-display); font-weight:800; text-transform:uppercase; letter-spacing:-.01em;
+  font-size:clamp(26px,5vw,52px); line-height:1; color:#fff; paint-order:stroke fill;
+  -webkit-text-stroke:.16em #12161b; text-shadow:0 5px 0 rgba(0,0,0,.25);
 }
-.vf-bar b{font-weight:600; color:#ffd27a}
-.vf-bar .spacer{flex:1}
-@media (max-width:520px){ .vf-bar{gap:10px; font-size:11px} .vf-bar .iso{display:none} }
+.cap-big.yel{color:#ffc83a}
+.cap-sub{font:700 14px/1.3 var(--f-body); background:rgba(14,18,24,.72); padding:6px 12px; border-radius:10px; max-width:46ch}
+.cap.show .cap-big{animation:pop .42s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{0%{transform:scale(.6) translateY(10px); opacity:0} 100%{transform:none; opacity:1}}
+.flash{position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none}
+.flash.go{animation:fl .5s ease-out}
+@keyframes fl{0%{opacity:.95} 100%{opacity:0}}
+.split{position:absolute; top:0; bottom:0; width:0; pointer-events:auto; cursor:ew-resize}
+.split::before{content:""; position:absolute; top:0; bottom:0; left:-1.5px; width:3px; background:#fff; box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.split .knob{position:absolute; top:50%; left:0; width:44px; height:44px; margin:-22px 0 0 -22px; border-radius:50%; background:#fff; color:#16202b;
+  display:grid; place-items:center; font:800 16px var(--f-display); box-shadow:0 4px 0 rgba(0,0,0,.25)}
+.split-l, .split-r{position:absolute; bottom:16px}
+.split-l{left:14px} .split-r{right:14px}
+.load{position:absolute; inset:0; display:grid; place-items:center; background:#a9cfe8; color:#16202b; font:700 15px var(--f-body); text-align:center; padding:20px}
 
-/* Painel */
-.panel{
-  background:var(--surface); border:1px solid var(--line); border-radius:8px;
-  padding:18px; display:flex; flex-direction:column; gap:18px; min-width:0;
+/* ---------- deck de controles ---------- */
+.deck{display:grid; grid-template-columns:auto minmax(0,1fr); gap:14px 22px; align-items:center}
+@media (max-width:720px){ .deck{grid-template-columns:minmax(0,1fr)} }
+.readout{display:flex; align-items:center; gap:14px}
+.readout canvas{width:78px; height:78px; flex:none}
+.readout .lbl{font:700 11.5px var(--f-mono); letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+.readout .big{font-family:var(--f-display); font-weight:800; font-size:44px; line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+.readout .small{font:600 13px var(--f-mono); color:var(--muted); font-variant-numeric:tabular-nums}
+
+.lens-ring{
+  position:relative; height:70px; border-radius:16px; overflow:hidden; cursor:grab; user-select:none; -webkit-user-select:none; touch-action:pan-y;
+  background:linear-gradient(#323840, #171a1f 42%, #0e1013 58%, #262b32);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14), inset 0 -3px 8px rgba(0,0,0,.6), 0 5px 0 rgba(22,32,43,.25);
+  -webkit-mask-image:linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+          mask-image:linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
 }
-.ring{display:flex; flex-direction:column; gap:8px}
-.ring-head{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
-.ring-head label{font-size:12px; font-family:var(--f-mono); letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
-.ring-val{font-family:var(--f-display); font-stretch:110%; font-weight:720; font-size:30px; line-height:1; font-variant-numeric:tabular-nums}
-.ring-val small{font-size:15px; font-weight:500; color:var(--muted); margin-left:2px}
-.scale{display:flex; justify-content:space-between; font-family:var(--f-mono); font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums}
-.hint{font-size:13.5px; color:var(--muted); margin:0}
+.lens-ring:active{cursor:grabbing}
+.lens-ring:focus-visible{outline:3px solid var(--pop); outline-offset:3px}
+.ring-track{position:absolute; top:0; bottom:0; left:0; will-change:transform}
+.ring-track::after{content:""; position:absolute; left:0; right:0; bottom:0; height:18px;
+  background:repeating-linear-gradient(90deg, rgba(255,255,255,.1) 0 2px, rgba(0,0,0,.25) 2px 4px, transparent 4px 7px)}
+.tick{position:absolute; top:9px; width:2px; height:8px; margin-left:-1px; background:rgba(255,255,255,.4); border-radius:1px}
+.tick.major{height:12px; background:#fff}
+.tick span{position:absolute; top:15px; left:50%; transform:translateX(-50%); font:800 19px var(--f-display); color:#fff; white-space:nowrap; letter-spacing:-.01em}
+.tick.gold span{color:#ffc83a}
+.ring-index{position:absolute; left:50%; top:0; transform:translateX(-50%); width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-top:10px solid #ffc83a; filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
+.ring-cap{display:flex; justify-content:space-between; font:700 11.5px var(--f-mono); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-top:6px}
 
-input[type=range]{-webkit-appearance:none; appearance:none; width:100%; height:28px; background:transparent; margin:0; cursor:pointer}
-input[type=range]::-webkit-slider-runnable-track{height:6px; border-radius:3px;
-  background:repeating-linear-gradient(90deg, var(--line) 0 2px, transparent 2px 9px), var(--bg); border:1px solid var(--line)}
-input[type=range]::-moz-range-track{height:6px; border-radius:3px; background:var(--bg); border:1px solid var(--line)}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:22px; height:22px; margin-top:-9px; border-radius:50%;
-  background:var(--accent-fill); border:3px solid var(--surface); box-shadow:0 0 0 1px var(--accent-fill)}
-input[type=range]::-moz-range-thumb{width:16px; height:16px; border-radius:50%; background:var(--accent-fill); border:3px solid var(--surface); box-shadow:0 0 0 1px var(--accent-fill)}
-input[type=range]:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:4px}
-
-.iris-row{display:flex; gap:14px; align-items:center}
-.iris-row canvas{width:96px; height:96px; flex:none}
-.iris-facts{display:flex; flex-direction:column; gap:2px; font-size:14px; min-width:0}
-.iris-facts .k{color:var(--muted)}
-.iris-facts .v{font-family:var(--f-mono); font-variant-numeric:tabular-nums; font-weight:600}
-
-.btns{display:flex; flex-wrap:wrap; gap:8px}
-button{
-  font:inherit; font-size:14px; cursor:pointer; border-radius:999px; padding:7px 14px;
-  border:1px solid var(--line); background:var(--bg); color:var(--ink);
+.actions{display:flex; flex-wrap:wrap; gap:10px}
+.btn{
+  font:800 15px var(--f-body); cursor:pointer; color:var(--ink); background:var(--surface);
+  border:2px solid var(--ink); border-radius:14px; padding:10px 16px; box-shadow:0 4px 0 var(--ink);
+  transition:transform .08s, box-shadow .08s; display:inline-flex; align-items:center; gap:8px;
 }
-button:hover{border-color:var(--accent)}
-button:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-button[aria-pressed="true"]{background:var(--ink); color:var(--surface); border-color:var(--ink)}
-button.play{background:var(--accent-fill); border-color:var(--accent-fill); color:#1b1206; font-weight:600}
-.seg{display:flex; flex-wrap:wrap; gap:6px}
-.seg button{padding:5px 12px; font-size:13.5px}
-hr.sep{border:0; border-top:1px solid var(--line); margin:0}
+.btn:active{transform:translateY(3px); box-shadow:0 1px 0 var(--ink)}
+.btn:focus-visible{outline:3px solid var(--mint); outline-offset:3px}
+.btn.primary{background:#ffc83a; color:#16202b; border-color:#16202b; box-shadow:0 4px 0 #16202b}
+.btn[aria-pressed="true"]{background:var(--ink); color:var(--surface)}
+.btn svg{width:18px; height:18px; flex:none}
 
-/* Profundidade de campo */
-.dof{background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:18px; display:flex; flex-direction:column; gap:12px}
-.dof-top{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:8px 20px}
-.dof h2, .learn h2{font-family:var(--f-display); font-stretch:105%; font-weight:700; font-size:20px; margin:0}
-.dof-sum{font-size:16px; margin:0; max-width:70ch}
-.dof-sum strong{color:var(--sharp)}
+.more{background:var(--surface); border:2px solid var(--line); border-radius:18px; padding:18px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 26px}
+@media (max-width:720px){ .more{grid-template-columns:minmax(0,1fr)} }
+.field{display:flex; flex-direction:column; gap:8px; min-width:0}
+.field-h{display:flex; justify-content:space-between; align-items:baseline}
+.field-h label, .field-h span.l{font:700 11.5px var(--f-mono); letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+.field-h output{font-family:var(--f-display); font-weight:800; font-size:24px; font-variant-numeric:tabular-nums}
+.lens-ring.sm{height:58px}
+.lens-ring.sm .tick span{font-size:16px}
+input[type=range]{width:100%; accent-color:var(--mint); height:28px}
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+.chips button{font:700 14px var(--f-body); cursor:pointer; padding:6px 12px; border-radius:999px; border:2px solid var(--line); background:var(--bg); color:var(--ink)}
+.chips button:hover{border-color:var(--mint)}
+.chips button:focus-visible{outline:3px solid var(--mint); outline-offset:2px}
+
+/* ---------- seções ---------- */
+.card{background:var(--surface); border:2px solid var(--line); border-radius:20px; padding:20px; display:flex; flex-direction:column; gap:12px; min-width:0}
+h2{font-family:var(--f-display); font-weight:800; font-size:clamp(22px,3vw,30px); line-height:1.1; margin:0; letter-spacing:-.01em; text-wrap:balance}
+.row-h{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:6px 18px}
+.dof-sum{margin:0; font-size:17px; max-width:72ch}
+.dof-sum strong{color:var(--mint-ink)}
 .dof-svg{overflow-x:auto}
 .dof-svg svg{display:block; width:100%; min-width:560px; height:auto}
-.t-axis{stroke:var(--line); stroke-width:1.5}
-.t-tick{stroke:var(--line)}
+.t-axis{stroke:var(--line); stroke-width:2}
+.t-tick{stroke:var(--line); stroke-width:1.5}
 .t-lbl{fill:var(--muted); font-family:var(--f-mono); font-size:13px}
-.t-band{fill:var(--sharp-fill); stroke:var(--sharp); stroke-width:1.5}
-.t-in{fill:var(--sharp)}
+.t-band{fill:var(--sharp-fill); stroke:var(--mint); stroke-width:2}
+.t-in{fill:var(--mint)}
 .t-out{fill:var(--off)}
-.t-name{fill:var(--ink); font-family:var(--f-body); font-size:15px}
+.t-name{fill:var(--ink); font-family:var(--f-body); font-weight:700; font-size:15px}
 .t-cam{fill:var(--ink)}
-.t-focus{stroke:var(--accent); stroke-width:2; stroke-dasharray:4 4}
+.t-focus{stroke:#e0a400; stroke-width:2.5; stroke-dasharray:5 4}
 
-/* Explicação */
-.learn{display:flex; flex-direction:column; gap:14px}
-.cols{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:22px}
+.shots{display:flex; gap:18px; overflow-x:auto; padding:8px 4px 14px}
+.shots-empty{color:var(--muted); margin:0}
+.polaroid{flex:none; width:210px; background:#fbfaf7; padding:10px 10px 12px; border-radius:4px; box-shadow:0 10px 24px -10px rgba(0,0,0,.45), 0 1px 0 rgba(0,0,0,.08); margin:0;
+  animation:drop .55s cubic-bezier(.2,1.4,.4,1)}
+@keyframes drop{0%{transform:translateY(-30px) rotate(-8deg) scale(.9); opacity:0}}
+.polaroid img{display:block; width:100%; border-radius:2px; background:#ddd}
+.polaroid figcaption{font:600 21px/1.05 var(--f-hand); color:#2a2f36; margin-top:8px; text-align:center}
+.polaroid figcaption small{display:block; font-size:17px; color:#6a6f77}
+
+.quiz{display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:20px; align-items:center}
+@media (max-width:760px){ .quiz{grid-template-columns:minmax(0,1fr)} }
+.quiz-img{position:relative; border-radius:14px; overflow:hidden; aspect-ratio:3/2; background:var(--bg); max-width:100%}
+.quiz-img img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+.quiz-q{display:flex; flex-direction:column; gap:12px}
+.quiz-q p{margin:0}
+.opts{display:flex; flex-wrap:wrap; gap:10px}
+.opts .btn{font-size:18px; font-family:var(--f-display); min-width:84px; justify-content:center}
+.opts .btn.ok{background:var(--mint); border-color:var(--mint); color:#062218}
+.opts .btn.no{background:#e65a4f; border-color:#e65a4f; color:#fff}
+.fb{min-height:3em; font-size:16px}
+.score{font:700 13px var(--f-mono); color:var(--muted)}
+
+.cols{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px}
 @media (max-width:820px){ .cols{grid-template-columns:minmax(0,1fr)} }
-.col h3{font-family:var(--f-display); font-stretch:115%; font-size:17px; margin:0 0 4px; display:flex; gap:8px; align-items:baseline}
-.col h3 span{font-family:var(--f-mono); font-size:12px; font-weight:400; color:var(--accent); letter-spacing:.06em}
-.col p{margin:0; color:var(--muted); max-width:52ch}
-.rule{font-family:var(--f-display); font-stretch:108%; font-weight:650; font-size:clamp(18px,2.4vw,22px); margin:4px 0 0; text-wrap:balance}
-.rule em{font-style:normal; color:var(--accent)}
+.col{background:var(--surface); border:2px solid var(--line); border-radius:18px; padding:18px; display:flex; flex-direction:column; gap:6px}
+.col .tag{font:700 12px var(--f-mono); color:var(--mint-ink); letter-spacing:.06em}
+.col h3{font-family:var(--f-display); font-weight:800; font-size:20px; margin:0}
+.col p{margin:0; color:var(--muted)}
+.rule{font-family:var(--f-display); font-weight:700; font-size:clamp(19px,2.6vw,25px); margin:0; text-wrap:balance; line-height:1.25}
+.rule mark{background:var(--pop); color:#16202b; padding:0 .15em; border-radius:.15em}
 .foot{font-size:13px; color:var(--muted); margin:0}
-@media (prefers-reduced-motion: reduce){ .af{transition:none} }
+@media (prefers-reduced-motion: reduce){
+  .hint-tap, .cap.show .cap-big, .polaroid, .af.pulse{animation:none}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div class="eyebrow">Laboratório de lente · 24-70mm f/2.8</div>
-    <h1>Brinque com a lente <span class="mm">24–70</span></h1>
-    <p class="lede">Mexa na abertura, no zoom e na distância e veja, no visor, o que acontece com a noiva e com o fundo. É a mesma conta que a sua câmera faz.</p>
+    <h1>Gire a lente e veja o <span class="hl">fundo derreter</span></h1>
+    <p class="lede">Uma cerimônia em 3D na frente da sua 24-70. Gire o anel da abertura, toque na cena para escolher o foco e tire a foto.</p>
   </header>
 
-  <section class="studio" aria-label="Simulador">
-    <div class="viewfinder" id="vf" role="img" aria-label="Visor da câmera mostrando uma noiva com árvores e luzes ao fundo">
-      <div class="vf-ui">
-        <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
-        <div class="af" id="af"></div>
-        <div class="af-note" id="afNote" hidden></div>
-        <div class="vf-bar">
-          <span id="barF"><b>70</b>mm</span>
-          <span id="barN"><b>f/2.8</b></span>
-          <span id="barS">1/1000</span>
-          <span class="iso">ISO 100</span>
-          <span class="spacer"></span>
-          <span id="barD">foco 2,5 m</span>
+  <section class="stage" aria-label="Simulador">
+    <div class="viewer" id="viewer">
+      <canvas id="gl" aria-label="Cena 3D de casamento vista pela lente"></canvas>
+      <div class="ov">
+        <div class="af" id="af"><div class="af-lbl" id="afLbl">Noiva</div></div>
+        <div class="ov-tl">
+          <span class="chip hint-tap" id="tapHint"><span class="dot"></span>Toque na cena para focar</span>
         </div>
+        <div class="ov-tr"><span class="chip" id="exif"><b>70mm</b> f/2.8 · 1/1000 · ISO 100</span></div>
+        <div class="cap" id="cap" hidden><div class="cap-big" id="capBig"></div><div class="cap-sub" id="capSub"></div></div>
+        <div class="flash" id="flash"></div>
+      </div>
+      <div class="split" id="split" hidden>
+        <div class="knob" aria-hidden="true">⟷</div>
+      </div>
+      <span class="chip split-l" id="splitL" hidden>f/2.8</span>
+      <span class="chip split-r" id="splitR" hidden>f/16</span>
+      <div class="load" id="load">Montando a cerimônia…</div>
+    </div>
+
+    <div class="deck">
+      <div class="readout">
+        <canvas id="iris" width="156" height="156" aria-hidden="true"></canvas>
+        <div>
+          <div class="lbl">Abertura</div>
+          <div class="big" id="nBig">f/2.8</div>
+          <div class="small" id="nSmall">100% de luz · 1/1000</div>
+        </div>
+      </div>
+      <div>
+        <div class="lens-ring" id="apRing" role="slider" tabindex="0" aria-label="Anel de abertura"></div>
+        <div class="ring-cap"><span>← mais desfoque</span><span>arraste o anel</span><span>mais nitidez →</span></div>
       </div>
     </div>
 
-    <div class="panel">
-      <div class="ring">
-        <div class="ring-head">
-          <label for="ap">Abertura</label>
-          <div class="ring-val" id="apVal">f/2.8</div>
-        </div>
-        <input type="range" id="ap" min="0" max="18" step="1" value="0" aria-describedby="apHint">
-        <div class="scale"><span>f/2.8</span><span>f/5.6</span><span>f/11</span><span>f/22</span></div>
-        <p class="hint" id="apHint">Número menor abre mais o diafragma: mais luz e mais desfoque.</p>
+    <div class="actions">
+      <button class="btn primary" id="shoot" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        Tirar foto
+      </button>
+      <button class="btn" id="tourBtn" type="button" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>
+        Tour guiado
+      </button>
+      <button class="btn" id="cmpBtn" type="button" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 3v18"/></svg>
+        Comparar f/2.8 × f/16
+      </button>
+      <button class="btn" id="moreBtn" type="button" aria-expanded="false" aria-controls="more">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+        Mais controles
+      </button>
+    </div>
+
+    <div class="more" id="more" hidden>
+      <div class="field">
+        <div class="field-h"><span class="l">Zoom (distância focal)</span><output id="fOut">70 mm</output></div>
+        <div class="lens-ring sm" id="zRing" role="slider" tabindex="0" aria-label="Anel de zoom"></div>
       </div>
-
-      <div class="iris-row">
-        <canvas id="iris" width="192" height="192" aria-hidden="true"></canvas>
-        <div class="iris-facts">
-          <div><span class="k">Luz que entra: </span><span class="v" id="light">100%</span></div>
-          <div><span class="k">Velocidade p/ mesma foto: </span><span class="v" id="speed">1/1000</span></div>
-          <div><span class="k">Fundo: </span><span class="v" id="bgq">muito desfocado</span></div>
-        </div>
+      <div class="field">
+        <div class="field-h"><label for="dist">Você até o casal</label><output id="sOut">2,8 m</output></div>
+        <input type="range" id="dist" min="2" max="12" step="0.1" value="2.8">
       </div>
-
-      <div class="btns">
-        <button class="play" id="play" type="button">Animar abertura</button>
-      </div>
-
-      <hr class="sep">
-
-      <div class="ring">
-        <div class="ring-head">
-          <label for="fl">Distância focal</label>
-          <div class="ring-val" id="flVal">70<small>mm</small></div>
-        </div>
-        <input type="range" id="fl" min="24" max="70" step="1" value="70">
-        <div class="scale"><span>24</span><span>35</span><span>50</span><span>70</span></div>
-        <p class="hint">É o zoom. Muda o enquadramento e também o quanto o fundo desfoca.</p>
-      </div>
-
-      <div class="ring">
-        <div class="ring-head">
-          <label for="ds">Você até a noiva</label>
-          <div class="ring-val" id="dsVal">2,5<small>m</small></div>
-        </div>
-        <input type="range" id="ds" min="1.5" max="8" step="0.1" value="2.5">
-        <div class="scale"><span>1,5 m</span><span>8 m</span></div>
-      </div>
-
-      <div class="ring">
-        <div class="ring-head"><label>Foco em</label></div>
-        <div class="seg" id="focusSeg">
-          <button type="button" data-f="flores" aria-pressed="false">Flores</button>
-          <button type="button" data-f="noiva" aria-pressed="true">Noiva</button>
-          <button type="button" data-f="arvores" aria-pressed="false">Árvores</button>
-          <button type="button" data-f="luzes" aria-pressed="false">Luzes</button>
+      <div class="field">
+        <div class="field-h"><span class="l">Focar em</span></div>
+        <div class="chips" id="focusChips">
+          <button type="button" data-t="noiva">Noiva</button>
+          <button type="button" data-t="noivo">Noivo</button>
+          <button type="button" data-t="arco">Arco</button>
+          <button type="button" data-t="luzes">Luzes</button>
+          <button type="button" data-t="arvores">Árvores</button>
         </div>
       </div>
-
-      <hr class="sep">
-
-      <div class="ring">
-        <div class="ring-head"><label>Situações prontas</label></div>
-        <div class="btns" id="presets">
-          <button type="button" data-p="70,2.8,2.5">Retrato · 70mm f/2.8</button>
-          <button type="button" data-p="35,4,3.5">Casal e cenário · 35mm f/4</button>
-          <button type="button" data-p="24,8,5">Grupo · 24mm f/8</button>
-          <button type="button" data-p="24,16,3">Tudo nítido · 24mm f/16</button>
+      <div class="field">
+        <div class="field-h"><span class="l">Situações prontas</span></div>
+        <div class="chips" id="presets">
+          <button type="button" data-p="70,2.8,2.8">Retrato</button>
+          <button type="button" data-p="35,4,4.5">Casal e cenário</button>
+          <button type="button" data-p="24,8,9.5">Cerimônia toda</button>
+          <button type="button" data-p="24,16,6">Tudo nítido</button>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="dof" aria-label="Profundidade de campo">
-    <div class="dof-top">
-      <h2>O que fica nítido</h2>
-      <span class="eyebrow" id="dofRange">2,41 m a 2,60 m</span>
-    </div>
+  <section class="card" aria-label="Faixa nítida">
+    <div class="row-h"><h2>O que fica nítido</h2><span class="eyebrow" id="dofRange"></span></div>
     <p class="dof-sum" id="dofSum"></p>
-    <div class="dof-svg"><svg id="dofSvg" viewBox="0 0 1000 150" role="img" aria-label="Régua de distância mostrando a faixa nítida"></svg></div>
+    <div class="dof-svg"><svg id="dofSvg" viewBox="0 0 1000 150" role="img" aria-label="Régua de distância com a faixa nítida"></svg></div>
   </section>
 
-  <section class="learn">
+  <section class="card" aria-label="Suas fotos">
+    <div class="row-h"><h2>Suas fotos</h2><span class="eyebrow" id="shotCount">0 fotos</span></div>
+    <p class="shots-empty" id="shotsEmpty">Toque em <strong>Tirar foto</strong> para revelar a cena com as configurações atuais. Tire uma em f/2.8 e outra em f/16 para comparar.</p>
+    <div class="shots" id="shots"></div>
+  </section>
+
+  <section class="card" aria-label="Desafio">
+    <div class="row-h"><h2>Desafio: qual abertura?</h2><span class="score" id="score">0 de 0</span></div>
+    <div class="quiz">
+      <div class="quiz-img"><img id="quizImg" alt="Foto do desafio"></div>
+      <div class="quiz-q">
+        <p>Olhe o fundo e as luzinhas. Qual abertura foi usada nesta foto?</p>
+        <div class="opts" id="opts">
+          <button class="btn" type="button" data-n="2.8">f/2.8</button>
+          <button class="btn" type="button" data-n="5.6">f/5.6</button>
+          <button class="btn" type="button" data-n="16">f/16</button>
+        </div>
+        <div class="fb" id="fb"></div>
+        <div><button class="btn" type="button" id="nextQ">Próxima foto</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:16px">
     <h2>Abertura não é distância focal</h2>
     <div class="cols">
       <div class="col">
-        <h3>Abertura <span>f/2.8 → f/22</span></h3>
-        <p>É o tamanho do buraco do diafragma. Em f/2.8 ele está todo aberto: entra muita luz e só uma fatia fina da cena fica nítida. Em f/22 o buraco é pequeno, quase tudo fica nítido e entra 64 vezes menos luz.</p>
+        <span class="tag">f/2.8 → f/22</span>
+        <h3>Abertura</h3>
+        <p>É o tamanho do buraco do diafragma. Em f/2.8 ele está todo aberto: entra muita luz e só uma fatia fina fica nítida. Em f/22 quase tudo fica nítido e entra 64 vezes menos luz.</p>
       </div>
       <div class="col">
-        <h3>Distância focal <span>24 → 70 mm</span></h3>
-        <p>É o zoom da lente. Em 24mm você vê a cena aberta; em 70mm você fecha na noiva. Mudar a abertura não muda a distância focal: a lente continua sendo 70mm em f/2.8 ou em f/22.</p>
+        <span class="tag">24 → 70 mm</span>
+        <h3>Distância focal</h3>
+        <p>É o zoom. Em 24mm cabe a cerimônia inteira; em 70mm você fecha no casal. Mexer na abertura não muda o zoom: a lente continua 70mm em f/2.8 ou em f/22.</p>
       </div>
       <div class="col">
-        <h3>Distância <span>você ↔ noiva ↔ fundo</span></h3>
-        <p>Quanto mais perto você está da noiva e mais longe o fundo está dela, mais o fundo derrete. Por isso um retrato a 70mm com o casal longe das árvores fica tão limpo.</p>
+        <span class="tag">você ↔ casal ↔ fundo</span>
+        <h3>Distância</h3>
+        <p>Quanto mais perto você está do casal e mais longe o fundo está deles, mais o fundo derrete. Afaste o casal do arco e das árvores e o retrato fica limpo.</p>
       </div>
     </div>
-    <p class="rule">Para mais desfoque: <em>número f menor</em>, <em>mais zoom</em>, <em>mais perto</em> do casal e <em>fundo mais longe</em>.</p>
-    <p class="foot">Simulação de câmera full frame, com círculo de confusão de 0,03 mm. A velocidade considera ISO 100 e a mesma exposição de f/2.8 a 1/1000.</p>
+    <p class="rule">Para mais desfoque: <mark>número f menor</mark>, <mark>mais zoom</mark>, <mark>mais perto</mark> do casal e <mark>fundo mais longe</mark>.</p>
+    <p class="foot">Simulação de câmera full frame com círculo de confusão de 0,03 mm. O desfoque de cada ponto da cena é calculado pela fórmula da lente fina. A velocidade considera ISO 100 e a mesma exposição de f/2.8 a 1/1000.</p>
   </section>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/geometries/RoundedBoxGeometry.js"></script>
 <script>
 (function(){
-  const STOPS=[2.8,3.2,3.5,4,4.5,5,5.6,6.3,7.1,8,9,10,11,13,14,16,18,20,22];
-  const SPEEDS=[8000,6400,5000,4000,3200,2500,2000,1600,1250,1000,800,640,500,400,320,250,200,160,125,100,80,60,50,40,30,25,20,15,13,10,8];
-  const COC=0.03, SENSOR=36, CAM_H=1.45, BLADES=9;
-  const D={flores:0.9, arvores:8, luzes:14, colinas:40};
-  const state={N:2.8, f:70, s:2.5, focus:'noiva'};
-  const $=id=>document.getElementById(id);
+'use strict';
+const $=id=>document.getElementById(id);
+const loadEl=$('load');
+if(!window.THREE){ loadEl.textContent='Não foi possível carregar o 3D. Verifique a conexão e recarregue a página.'; return; }
 
-  // ---------- dados da cena (em metros, gerados uma vez) ----------
-  function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-  const R=rng(7);
-  const TREES=[-10,-6,-2,2.4,6.2,10.5,-14,14].map(x=>{
-    const blobs=[];const n=9+Math.floor(R()*5);
-    for(let i=0;i<n;i++){blobs.push({dx:(R()-.5)*2.6, dy:(R()-.3)*1.8, r:.7+R()*.7, c:['#2f4826','#3b5a2c','#4a6b33','#56773a'][Math.floor(R()*4)]});}
-    return {x, top:3.4+R()*.8, blobs};
-  });
-  const FLOWERS=[];
-  [-1,1].forEach(side=>{for(let i=0;i<16;i++){
-    FLOWERS.push({x:side*(.28+R()*.5), h:.92+R()*.3, lean:(R()-.5)*.08, r:.022+R()*.02,
-      c:['#f3b6c4','#fbe7ea','#e88aa2','#ffffff','#f7cf9c'][Math.floor(R()*5)]});
-  }});
-  const BOUQUET=[];for(let i=0;i<14;i++){const a=R()*Math.PI*2, rr=R()*.06;BOUQUET.push({dx:Math.cos(a)*rr, dy:Math.sin(a)*rr*.8, r:.022+R()*.014, c:['#f6c3cf','#ffffff','#e793a8','#fde9d4'][Math.floor(R()*4)]});}
-  const LIGHTS=[];
-  [[3.5,.95,0],[4.3,1.1,.25]].forEach(([top,sag,off])=>{for(let x=-16+off;x<=16;x+=.55){LIGHTS.push({x, y:top-sag*(1-(x/16)**2)-.25*Math.cos(x*.9)})}});
+/* ================= óptica ================= */
+const STOPS=[2.8,3.2,3.5,4,4.5,5,5.6,6.3,7.1,8,9,10,11,13,14,16,18,20,22];
+const SPEEDS=[8000,6400,5000,4000,3200,2500,2000,1600,1250,1000,800,640,500,400,320,250,200,160,125,100,80,60,50,40,30,25,20,15,13,10,8];
+const COC=0.03, BLADES=9, CAM_H=1.5;
+const state={N:2.8, f:70, s:2.8, focusKey:'noiva', focusPoint:null, focusCur:3, compare:false, split:.5, tour:null};
+const nFromPos=p=>{const i=Math.max(0,Math.min(18,p)), a=Math.floor(i), b=Math.min(18,a+1), t=i-a; return Math.exp(Math.log(STOPS[a])*(1-t)+Math.log(STOPS[b])*t);};
+const posFromN=N=>{for(let i=0;i<18;i++){if(N<=STOPS[i+1]){const t=(Math.log(N)-Math.log(STOPS[i]))/(Math.log(STOPS[i+1])-Math.log(STOPS[i]));return i+Math.max(0,Math.min(1,t));}}return 18;};
+const fmt=(v,d)=>v.toFixed(d).replace('.',',');
+const fmtN=N=>'f/'+(N<10?fmt(N,1):Math.round(N));
+const fmtM=m=>!isFinite(m)?'infinito':m<1?Math.round(m*100)+' cm':fmt(m,2)+' m';
+function speedFor(N){const t=(1/1000)*(N/2.8)**2; let best=SPEEDS[0]; SPEEDS.forEach(v=>{if(Math.abs(Math.log(1/v/t))<Math.abs(Math.log(1/best/t)))best=v}); return '1/'+best;}
+function dofOf(N,f,F){const Fm=F*1000, H=f*f/(N*COC)+f; return {near:Fm*(H-f)/(H+Fm-2*f)/1000, far:Fm<H?Fm*(H-f)/(H-Fm)/1000:Infinity};}
+function film(a){ if(a>=1.5) return [36,36/a]; if(a>=1) return [24*a,24]; if(a>=2/3) return [24,24/a]; return [36*a,36]; }
 
-  // ---------- canvases ----------
-  const vf=$('vf');
-  const names=['far','lights','mid','bride','fore'];
-  const C={};
-  names.forEach(n=>{const c=document.createElement('canvas');C[n]=c;vf.insertBefore(c, vf.querySelector('.vf-ui'));});
-  let Wv=0,Hv=0,M=0,dpr=1;
+/* ================= renderer ================= */
+THREE.ColorManagement && (THREE.ColorManagement.legacyMode=false);
+const canvas=$('gl'), viewer=$('viewer');
+let renderer;
+try{ renderer=new THREE.WebGLRenderer({canvas, antialias:false, powerPreference:'high-performance'}); }catch(e){ renderer=null; }
+if(!renderer || !renderer.capabilities.isWebGL2){ loadEl.textContent='Seu navegador não liberou o 3D (WebGL 2). Abra no Chrome, Safari ou Edge atualizados.'; return; }
+renderer.setPixelRatio(1);
+renderer.outputEncoding=THREE.LinearEncoding;
+renderer.toneMapping=THREE.NoToneMapping;
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 
-  function resize(){
-    Wv=vf.clientWidth; Hv=vf.clientHeight; if(!Wv||!Hv) return;
-    M=Math.round(Wv*.08); dpr=Math.min(window.devicePixelRatio||1,2);
-    names.forEach(n=>{const c=C[n];
-      c.style.left=-M+'px'; c.style.top=-M+'px';
-      c.style.width=(Wv+2*M)+'px'; c.style.height=(Hv+2*M)+'px';
-      c.width=Math.round((Wv+2*M)*dpr); c.height=Math.round((Hv+2*M)*dpr);
-    });
-    drawScene();
-  }
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(20,1.5,0.1,600);
 
-  function proj(d){
-    const p=Wv*state.f/(SENSOR*d), cx=(Wv+2*M)/2, cy=(Hv+2*M)/2;
-    return {p, X:x=>cx+x*p, Y:y=>cy+(CAM_H-y)*p, cx, cy};
-  }
-  function ctxOf(n){const c=C[n], x=c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,Wv+2*M,Hv+2*M); return x;}
-  function ell(x,cx,cy,rx,ry,fill){x.beginPath();x.ellipse(cx,cy,Math.max(rx,.1),Math.max(ry,.1),0,0,Math.PI*2);x.fillStyle=fill;x.fill();}
+/* ---------- materiais e peças ---------- */
+const mats={};
+function M(hex,rough){rough=rough==null?.62:rough; const k=hex+'|'+rough; return mats[k]||(mats[k]=new THREE.MeshStandardMaterial({color:hex, roughness:rough, metalness:0}));}
+const geoCache={};
+function RB(w,h,d,r){const k=[w,h,d,r].join(','); if(geoCache[k]) return geoCache[k]; const rr=Math.min(r, Math.min(w,h,d)/2-0.002); return geoCache[k]=new THREE.RoundedBoxGeometry(w,h,d,3,Math.max(rr,0.001));}
+const SPH=new THREE.SphereGeometry(1,28,18), ICO=new THREE.IcosahedronGeometry(1,3), CYL=new THREE.CylinderGeometry(1,1,1,20);
+function mesh(geo,mat,parent,x,y,z){const m=new THREE.Mesh(geo,mat); m.position.set(x||0,y||0,z||0); m.castShadow=true; m.receiveShadow=true; parent.add(m); return m;}
+function box(p,w,h,d,r,hex,x,y,z){return mesh(RB(w,h,d,r),M(hex),p,x,y,z);}
+function ball(p,r,hex,x,y,z,sx,sy,sz){const m=mesh(SPH,M(hex),p,x,y,z); m.scale.set(r*(sx||1),r*(sy||1),r*(sz||1)); return m;}
+function cyl(p,r,h,hex,x,y,z){const m=mesh(CYL,M(hex),p,x,y,z); m.scale.set(r,h,r); return m;}
+function group(label,parent){const g=new THREE.Group(); g.userData.label=label; (parent||scene).add(g); return g;}
+let seed=11; const rnd=()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+const pick=a=>a[Math.floor(rnd()*a.length)];
+const FLOWER=['#ff8fb1','#ffffff','#ffc2d4','#ffb07a','#fff1c9','#f76f9a'];
+const LEAF=['#3fae5a','#5cc46d','#2f9450','#7fcf7a'];
 
-  function drawFar(){
-    const x=ctxOf('far'), T=Wv+2*M, H=Hv+2*M, {cy}=proj(40);
-    const sky=x.createLinearGradient(0,0,0,cy);
-    sky.addColorStop(0,'#8fa9c9'); sky.addColorStop(.6,'#e9c9a3'); sky.addColorStop(1,'#f7d9a8');
-    x.fillStyle=sky; x.fillRect(0,0,T,cy+2);
-    const g=x.createLinearGradient(0,cy,0,H);
-    g.addColorStop(0,'#c4b071'); g.addColorStop(.35,'#8f9450'); g.addColorStop(1,'#5f7638');
-    x.fillStyle=g; x.fillRect(0,cy,T,H-cy);
-    // sol
-    const sx=proj(40).X(-0.3*40), sy=cy-0.04*proj(40).p*40;
-    const sun=x.createRadialGradient(sx,sy,0,sx,sy,Math.max(T,H)*.7);
-    sun.addColorStop(0,'rgba(255,236,190,.95)'); sun.addColorStop(.12,'rgba(255,214,150,.55)'); sun.addColorStop(1,'rgba(255,200,140,0)');
-    x.fillStyle=sun; x.fillRect(0,0,T,H);
-    // colinas
-    [[60,'rgba(132,140,176,.75)',9],[34,'rgba(96,112,120,.85)',5]].forEach(([d,col,amp])=>{
-      const P=proj(d); x.beginPath(); x.moveTo(P.X(-200),P.Y(0));
-      for(let xx=-200;xx<=200;xx+=3){x.lineTo(P.X(xx),P.Y(amp*.5+amp*.35*Math.sin(xx*.06+d)+amp*.2*Math.sin(xx*.17)))}
-      x.lineTo(P.X(200),P.Y(0)); x.closePath(); x.fillStyle=col; x.fill();
-    });
-  }
+/* ---------- céu ---------- */
+const SUN=new THREE.Vector3(-0.42,0.13,-1).normalize();
+const sky=new THREE.Mesh(new THREE.SphereGeometry(480,48,24), new THREE.ShaderMaterial({
+  side:THREE.BackSide, depthWrite:true,
+  uniforms:{top:{value:new THREE.Color('#5d9fe0')}, hor:{value:new THREE.Color('#ffd9a6')}, low:{value:new THREE.Color('#b9d48f')}, sunDir:{value:SUN}, sunCol:{value:new THREE.Color('#fff2d6')}},
+  vertexShader:'varying vec3 vW; void main(){ vW=normalize(position); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+  fragmentShader:'uniform vec3 top,hor,low,sunCol,sunDir; varying vec3 vW; void main(){ vec3 d=normalize(vW); float h=d.y; vec3 c=mix(hor,top,smoothstep(0.0,0.5,h)); c=mix(low,c,smoothstep(-0.02,0.01,h)); float s=max(dot(d,sunDir),0.); c+=sunCol*(pow(s,900.)*30.+pow(s,40.)*0.9+pow(s,6.)*0.25); gl_FragColor=vec4(c,1.); }'
+}));
+sky.userData.label='Céu'; sky.userData.noHit=true; scene.add(sky);
 
-  function drawMid(){
-    const x=ctxOf('mid'), P=proj(D.arvores);
-    // sebe
-    x.beginPath(); x.moveTo(P.X(-60),P.Y(-.2));
-    for(let xx=-60;xx<=60;xx+=.4){x.lineTo(P.X(xx),P.Y(1.25+.16*Math.sin(xx*1.7)+.1*Math.sin(xx*4.3)))}
-    x.lineTo(P.X(60),P.Y(-.2)); x.closePath(); x.fillStyle='#3a5629'; x.fill();
-    TREES.forEach(t=>{
-      x.fillStyle='#4a3a2a'; x.fillRect(P.X(t.x-.17),P.Y(t.top),.34*P.p,t.top*P.p+2);
-      t.blobs.forEach(b=>ell(x,P.X(t.x+b.dx),P.Y(t.top+.6+b.dy),b.r*P.p,b.r*P.p*.92,b.c));
-      t.blobs.slice(0,4).forEach(b=>ell(x,P.X(t.x+b.dx-.25),P.Y(t.top+.9+b.dy),b.r*.55*P.p,b.r*.45*P.p,'rgba(214,196,110,.35)'));
-    });
-  }
+/* ---------- chão ---------- */
+const ground=new THREE.Mesh(new THREE.CircleGeometry(300,64), M('#7fcb67',.95));
+ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; ground.userData.label='Gramado'; scene.add(ground);
 
-  function drawBride(){
-    const x=ctxOf('bride'), P=proj(state.s), {X,Y,p}=P;
-    const skin='#e6bc9f', hair='#4a2f22';
-    ell(x,X(0),Y(0),.55*p,.07*p,'rgba(40,44,20,.28)');
-    // véu
-    x.beginPath(); x.moveTo(X(-.05),Y(1.68));
-    x.bezierCurveTo(X(-.26),Y(1.5),X(-.4),Y(1.0),X(-.36),Y(.7)); x.lineTo(X(.36),Y(.7));
-    x.bezierCurveTo(X(.4),Y(1.0),X(.26),Y(1.5),X(.05),Y(1.68)); x.closePath();
-    x.fillStyle='rgba(255,255,255,.4)'; x.fill();
-    ell(x,X(0),Y(1.59),.1*p,.1*p,hair);
-    // saia
-    const sk=x.createLinearGradient(X(-.47),0,X(.47),0);
-    sk.addColorStop(0,'#ddd3c3'); sk.addColorStop(.5,'#fbf8f2'); sk.addColorStop(1,'#d9cebd');
-    x.beginPath(); x.moveTo(X(-.13),Y(1.02));
-    x.bezierCurveTo(X(-.2),Y(.6),X(-.4),Y(.2),X(-.48),Y(0)); x.lineTo(X(.48),Y(0));
-    x.bezierCurveTo(X(.4),Y(.2),X(.2),Y(.6),X(.13),Y(1.02)); x.closePath(); x.fillStyle=sk; x.fill();
-    x.strokeStyle='rgba(170,150,120,.35)'; x.lineWidth=Math.max(.5,.005*p);
-    [-.3,-.15,0,.15,.3].forEach(k=>{x.beginPath();x.moveTo(X(k*.3),Y(.98));x.quadraticCurveTo(X(k*.9),Y(.5),X(k*1.4),Y(.02));x.stroke();});
-    // ombros
-    ell(x,X(0),Y(1.385),.19*p,.04*p,skin);
-    // corpete
-    x.beginPath(); x.moveTo(X(-.13),Y(1.02)); x.lineTo(X(-.165),Y(1.3)); x.quadraticCurveTo(X(-.185),Y(1.375),X(-.14),Y(1.385));
-    x.lineTo(X(.14),Y(1.385)); x.quadraticCurveTo(X(.185),Y(1.375),X(.165),Y(1.3)); x.lineTo(X(.13),Y(1.02)); x.closePath();
-    x.fillStyle='#f8f4ec'; x.fill();
-    // renda
-    x.save(); x.clip(); x.fillStyle='#d6cab6'; let row=0;
-    for(let yy=1.04;yy<1.38;yy+=.022){for(let xx=-.18+(row%2)*.011;xx<.18;xx+=.022){ell(x,X(xx),Y(yy),.0035*p,.0035*p,'#d6cab6')}row++;}
-    x.restore();
-    x.fillStyle='#d4bd8f'; x.fillRect(X(-.135),Y(1.065),.27*p,.045*p);
-    // braços
-    x.strokeStyle=skin; x.lineCap='round'; x.lineJoin='round'; x.lineWidth=.06*p;
-    [[-1],[1]].forEach(([s])=>{x.beginPath();x.moveTo(X(s*.175),Y(1.37));x.lineTo(X(s*.215),Y(1.17));x.lineTo(X(s*.05),Y(1.0));x.stroke();});
-    // buquê
-    ell(x,X(0),Y(.99),.085*p,.06*p,'#5a7a3c');
-    BOUQUET.forEach(b=>{ell(x,X(b.dx),Y(1.0+b.dy),b.r*p,b.r*p,b.c);ell(x,X(b.dx),Y(1.0+b.dy),b.r*.35*p,b.r*.35*p,'rgba(190,90,110,.45)')});
-    // pescoço, rosto
-    x.fillStyle=skin; x.fillRect(X(-.034),Y(1.475),.068*p,.1*p);
-    ell(x,X(0),Y(1.55),.083*p,.104*p,skin);
-    x.beginPath(); x.ellipse(X(0),Y(1.585),.092*p,.075*p,0,Math.PI,0); x.fillStyle=hair; x.fill();
-    ell(x,X(0),Y(1.685),.055*p,.035*p,hair);
-    [[-.07,1.64],[-.05,1.665],[-.085,1.615]].forEach(([a,b])=>ell(x,X(a),Y(b),.012*p,.012*p,'#fffaf0'));
-    ell(x,X(-.03),Y(1.556),.01*p,.006*p,'#2a1d18'); ell(x,X(.03),Y(1.556),.01*p,.006*p,'#2a1d18');
-    x.strokeStyle='#6b4a3a'; x.lineWidth=Math.max(.5,.004*p);
-    [-1,1].forEach(s=>{x.beginPath();x.moveTo(X(s*.045),Y(1.575));x.quadraticCurveTo(X(s*.03),Y(1.585),X(s*.015),Y(1.577));x.stroke();});
-    ell(x,X(-.05),Y(1.528),.016*p,.011*p,'rgba(230,120,120,.28)'); ell(x,X(.05),Y(1.528),.016*p,.011*p,'rgba(230,120,120,.28)');
-    x.beginPath(); x.arc(X(0),Y(1.53),.022*p,.2*Math.PI,.8*Math.PI); x.strokeStyle='#a8505a'; x.lineWidth=Math.max(.6,.006*p); x.stroke();
-  }
+/* ---------- altar de madeira ---------- */
+const deck=group('Altar');
+for(let i=0;i<8;i++) box(deck,.5,.14,2.6,.04,i%2?'#dca46a':'#d0955a',-1.75+i*.5,.07,-.35);
 
-  function drawFore(){
-    const x=ctxOf('fore'), {X,Y,p}=proj(D.flores);
-    FLOWERS.forEach(f=>{
-      x.strokeStyle='#4f6b34'; x.lineWidth=Math.max(1,.008*p); x.beginPath(); x.moveTo(X(f.x),Y(.6)); x.quadraticCurveTo(X(f.x),Y(f.h*.8),X(f.x+f.lean),Y(f.h)); x.stroke();
-      ell(x,X(f.x-.03),Y(f.h-.12),.035*p,.014*p,'#5e7d3f');
-    });
-    FLOWERS.forEach(f=>{
-      const cx=f.x+f.lean;
-      for(let i=0;i<6;i++){const a=i/6*Math.PI*2; ell(x,X(cx+Math.cos(a)*f.r*.75),Y(f.h+Math.sin(a)*f.r*.75),f.r*.6*p,f.r*.6*p,f.c);}
-      ell(x,X(cx),Y(f.h),f.r*.35*p,f.r*.35*p,'#e6b44a');
-    });
-  }
+/* ---------- tapete e pétalas ---------- */
+const rug=group('Tapete');
+box(rug,1.25,.025,16,.01,'#fff4e8',0,.013,9.2);
+for(let i=0;i<70;i++){const p=ball(rug,1,pick(['#ff8fb1','#ffc2d4','#ffffff']),(rnd()-.5)*1.1,.03,1.3+rnd()*14,.035,.006,.028); p.rotation.y=rnd()*6; p.castShadow=false;}
 
-  // ---------- óptica ----------
-  function focusDist(){return state.focus==='noiva'?state.s:D[state.focus];}
-  function blurMM(d){const F=focusDist()*1000, dd=d*1000, f=state.f; return (f*f/(state.N*(F-f)))*Math.abs(dd-F)/dd;}
-  function blurPx(d){return blurMM(d)/SENSOR*Wv;}
-  function dof(){
-    const F=focusDist()*1000, f=state.f, H=f*f/(state.N*COC)+f;
-    const near=F*(H-f)/(H+F-2*f), far=F<H?F*(H-f)/(H-F):Infinity;
-    return {near:near/1000, far:far/1000};
-  }
+/* ---------- arco de flores ---------- */
+const arch=group('Arco de flores');
+const ARCH_Z=-1.5, ARCH_R=1.45, ARCH_Y=2.55;
+[-1,1].forEach(s=>box(arch,.2,ARCH_Y,.2,.06,'#f7f3ec',s*ARCH_R,ARCH_Y/2+.14,ARCH_Z));
+{const tor=mesh(new THREE.TorusGeometry(ARCH_R,.1,14,60,Math.PI),M('#f7f3ec'),arch,0,ARCH_Y+.14,ARCH_Z);}
+function cluster(p,x,y,z,n,spread){for(let i=0;i<n;i++){const isLeaf=rnd()<.35; ball(p,isLeaf?.07+rnd()*.05:.075+rnd()*.07,isLeaf?pick(LEAF):pick(FLOWER),x+(rnd()-.5)*spread,y+(rnd()-.5)*spread,z+(rnd()-.5)*spread*.6,1,isLeaf?.6:1,1);}}
+for(let t=0.05;t<1.35;t+=.1){cluster(arch,Math.cos(t)*ARCH_R,ARCH_Y+.14+Math.sin(t)*ARCH_R,ARCH_Z+.05,6,.34);}
+for(let t=2.5;t<3.15;t+=.1){cluster(arch,Math.cos(t)*ARCH_R,ARCH_Y+.14+Math.sin(t)*ARCH_R,ARCH_Z+.05,5,.3);}
+[-1,1].forEach(s=>{cyl(arch,.2,.38,'#e9e3d8',s*1.95,.33,-.9); cluster(arch,s*1.95,.72,-.9,14,.45);});
 
-  function drawLights(){
-    const x=ctxOf('lights'); if(!Wv) return;
-    const P=proj(D.luzes), Dp=blurPx(D.luzes);
-    const k=Math.min(1,Math.max(0,(state.N-2.8)/(7-2.8)));
-    x.globalCompositeOperation='lighter';
-    LIGHTS.forEach(L=>{
-      const X=P.X(L.x), Y=P.Y(L.y), base=Math.max(1.6,.07*P.p), dia=Math.max(base,Dp), r=dia/2;
-      if(X<-r||X>Wv+2*M+r||Y<-r||Y>Hv+2*M+r) return;
-      const a=Math.min(1,.28+.72*(base/dia));
-      x.beginPath();
-      for(let i=0;i<=72;i++){
-        const t=i/72*Math.PI*2, seg=2*Math.PI/BLADES, rel=((t+Math.PI/2)%seg+seg)%seg-seg/2;
-        const rp=Math.cos(Math.PI/BLADES)/Math.cos(rel), rr=r*((1-k)+rp*k);
-        const px=X+Math.cos(t)*rr, py=Y+Math.sin(t)*rr; i?x.lineTo(px,py):x.moveTo(px,py);
+/* ---------- sebe atrás do arco ---------- */
+const hedge=group('Arbustos');
+for(let x=-7;x<=7;x+=.62) ball(hedge,.55+rnd()*.2,pick(['#3c9a4e','#46a857','#358a46']),x,.45,-3.4+(rnd()-.5)*.3,1,.95,1);
+
+/* ---------- varal de luzes ---------- */
+const lights=group('Luzes');
+const bulbMats=[0,1,2].map(i=>new THREE.MeshBasicMaterial({color:new THREE.Color('#ffd27f').multiplyScalar(5.5+i)}));
+const POLES=[[-3.3,-3.6],[3.3,-3.6],[-3.3,-7.8],[3.3,-7.8]];
+POLES.forEach(([x,z])=>cyl(lights,.05,3.9,'#7a5a40',x,1.95,z));
+const wireMat=M('#3a3530',.8);
+[[0,1],[2,3],[0,3],[1,2],[0,2],[1,3]].forEach(([a,b],k)=>{
+  const A=POLES[a], B=POLES[b], sag=.6+(k%3)*.15, pts=[];
+  for(let i=0;i<=24;i++){const t=i/24; pts.push(new THREE.Vector3(A[0]+(B[0]-A[0])*t, 3.75-sag*4*t*(1-t), A[1]+(B[1]-A[1])*t));}
+  const curve=new THREE.CatmullRomCurve3(pts); const w=new THREE.Mesh(new THREE.TubeGeometry(curve,40,.008,5,false),wireMat); lights.add(w);
+  const n=Math.round(curve.getLength()/.42);
+  for(let i=1;i<n;i++){const p=curve.getPoint(i/n); const b2=new THREE.Mesh(SPH,bulbMats[i%3]); b2.scale.setScalar(.05); b2.position.copy(p).add(new THREE.Vector3(0,-.06,0)); lights.add(b2);}
+});
+
+/* ---------- árvores ---------- */
+const trees=group('Árvores');
+[[-7,-10],[-3.6,-13],[0.6,-15.5],[4.6,-11],[8.4,-14],[-11,-16],[12,-12],[-5.5,-21],[6.5,-22],[-15,-11],[16,-18],[1.5,-26]].forEach(([x,z])=>{
+  const h=2.4+rnd()*.8; cyl(trees,.2,h,'#8d5c3a',x,h/2,z);
+  const n=4+Math.floor(rnd()*3);
+  for(let i=0;i<n;i++){const r=1.1+rnd()*.8; const m=mesh(ICO,M(pick(['#4caf50','#5cbf5f','#3f9e4b','#69c46a'])),trees,x+(rnd()-.5)*2,h+.9+rnd()*1.5,z+(rnd()-.5)*1.6); m.scale.set(r,r*.92,r);}
+});
+
+/* ---------- montanhas e nuvens ---------- */
+const hills=group('Montanhas');
+[[-70,-150,60,.32,'#7fb08f'],[20,-180,80,.26,'#8fbca3'],[95,-140,55,.36,'#79a98a'],[-140,-200,90,.3,'#9fc0c4'],[150,-220,90,.28,'#a6c4cc']].forEach(([x,z,r,sy,c])=>{const m=ball(hills,r,c,x,0,z,1,sy,.6); m.castShadow=false;});
+const clouds=group('Nuvens');
+[[-60,58,-260],[40,72,-300],[120,52,-240],[-150,66,-280],[10,44,-200]].forEach(([x,y,z])=>{for(let i=0;i<6;i++){const m=ball(clouds,10+rnd()*9,'#ffffff',x+(rnd()-.5)*34,y+(rnd()-.5)*8,z+(rnd()-.5)*10,1.2,.8,1); m.castShadow=false; m.material=M('#fff8ee',.9);}});
+
+/* ---------- cadeiras ---------- */
+const chairs=group('Cadeiras');
+const CHAIR_Z=[2.4,3.7,5.0,6.3,7.6,8.9,10.2];
+CHAIR_Z.forEach(z=>[-1.25,-1.9,-2.55,1.25,1.9,2.55].forEach(x=>{
+  const c=new THREE.Group(); c.position.set(x,0,z); chairs.add(c);
+  box(c,.5,.07,.48,.03,'#fbfaf6',0,.47,0);
+  box(c,.5,.5,.06,.03,'#fbfaf6',0,.78,.22);
+  [[-.21,-.2],[.21,-.2],[-.21,.2],[.21,.2]].forEach(([a,b])=>cyl(c,.022,.46,'#e8e2d6',a,.23,b));
+  if(Math.abs(x)<1.3){ const s=x<0?.26:-.26; cluster(c,s,.95,.24,7,.2); }
+}));
+
+/* ---------- noivos ---------- */
+const SKIN='#eeb08a';
+function face(p,y,z){
+  [-1,1].forEach(s=>{ball(p,.024,'#1d1a1a',s*.066,y,z,1,1.15,.5); ball(p,.008,'#ffffff',s*.066+.008,y+.01,z+.012); ball(p,.032,'#ff9a9a',s*.1,y-.05,z-.004,1,.7,.25).material=new THREE.MeshStandardMaterial({color:'#ff8d8d',roughness:.9,transparent:true,opacity:.45});});
+  const sm=mesh(new THREE.TorusGeometry(.03,.007,8,16,Math.PI),M('#9a4242'),p,0,y-.075,z+.003); sm.rotation.z=Math.PI;
+}
+// noiva
+const bride=group('Noiva'); bride.position.set(-.32,.14,0);
+{
+  const pts=[]; for(let i=0;i<=14;i++){const t=i/14; pts.push(new THREE.Vector2(.15+.44*Math.pow(t,1.7), 1.0-t*.98));} pts.push(new THREE.Vector2(0,.02));
+  mesh(new THREE.LatheGeometry(pts,48),M('#fffaf3',.85),bride,0,0,0);
+  box(bride,.34,.065,.24,.03,'#ecd6ab',0,1.02,0);
+  box(bride,.32,.32,.21,.09,'#fffaf3',0,1.2,0);
+  ball(bride,.17,SKIN,0,1.36,0,1.1,.28,.6);
+  [-1,1].forEach(s=>{const u=box(bride,.08,.3,.085,.04,SKIN,s*.2,1.2,.02); u.rotation.z=s*.12; const f=box(bride,.075,.26,.075,.035,SKIN,s*.13,1.02,.13); f.rotation.x=-1.05; f.rotation.z=s*.55; ball(bride,.042,SKIN,s*.055,.96,.2);});
+  ball(bride,.095,'#5b9a48',0,.97,.24,1,.85,1);
+  for(let i=0;i<13;i++){const a=rnd()*Math.PI*2, r=rnd()*.075; ball(bride,.038+rnd()*.018,pick(['#ffffff','#ffc2d4','#ff8fb1','#fff1c9']),Math.cos(a)*r,.99+Math.sin(a)*r*.8,.29+rnd()*.03);}
+  box(bride,.03,.16,.03,.01,'#ecd6ab',.02,.86,.23).rotation.z=.2;
+  cyl(bride,.048,.12,SKIN,0,1.42,0);
+  box(bride,.3,.31,.28,.12,SKIN,0,1.6,0);
+  face(bride,1.6,.142);
+  box(bride,.33,.15,.31,.07,'#5c3826',0,1.715,-.01);
+  box(bride,.33,.3,.12,.06,'#5c3826',0,1.6,-.11);
+  ball(bride,.085,'#5c3826',0,1.79,-.09);
+  [-.09,-.03,.04].forEach((x,i)=>ball(bride,.022,'#ffffff',x,1.76+i*.008,.1));
+  [-1,1].forEach(x=>ball(bride,.03,'#ffffff',x*.13,1.66,-.06));
+}
+// noivo
+const groom=group('Noivo'); groom.position.set(.34,.14,0);
+{
+  const NAVY='#2b3a63';
+  [-1,1].forEach(s=>{box(groom,.15,.08,.27,.035,'#1b1d22',s*.09,.04,.04); box(groom,.15,.8,.17,.05,NAVY,s*.09,.46,0);});
+  box(groom,.46,.58,.27,.1,NAVY,0,1.14,0);
+  box(groom,.14,.32,.02,.008,'#ffffff',0,1.25,.136);
+  [-1,1].forEach(s=>ball(groom,.034,'#16181d',s*.036,1.37,.152,1,.7,.5)); ball(groom,.016,'#16181d',0,1.37,.155);
+  [1.18,1.06].forEach(y=>ball(groom,.014,'#d9c08a',0,y,.138));
+  ball(groom,.032,'#ff8fb1',-.14,1.3,.14); ball(groom,.022,'#5cc46d',-.115,1.27,.14);
+  [-1,1].forEach(s=>{box(groom,.12,.52,.13,.05,NAVY,s*.29,1.12,0); ball(groom,.05,SKIN,s*.3,.84,.02);});
+  cyl(groom,.052,.12,SKIN,0,1.46,0);
+  box(groom,.31,.32,.29,.12,SKIN,0,1.64,0);
+  face(groom,1.64,.147);
+  box(groom,.33,.13,.31,.06,'#3a2a1e',0,1.77,-.01);
+  box(groom,.2,.08,.12,.04,'#3a2a1e',.04,1.83,.08);
+  box(groom,.33,.18,.08,.04,'#3a2a1e',0,1.68,-.12);
+  [-1,1].forEach(s=>box(groom,.06,.014,.01,.005,'#3a2a1e',s*.066,1.685,.148));
+}
+
+/* ---------- pétalas caindo ---------- */
+const PET=90;
+const petals=new THREE.InstancedMesh(new THREE.SphereGeometry(1,8,6),new THREE.MeshStandardMaterial({roughness:.8}),PET);
+petals.userData.noHit=true; petals.castShadow=false;
+const pData=[]; const dummy=new THREE.Object3D(); const pc=new THREE.Color();
+for(let i=0;i<PET;i++){pData.push({x:(rnd()-.5)*5,y:rnd()*4,z:-2+rnd()*4.5,ph:rnd()*6,sp:.18+rnd()*.2,r:rnd()*6}); petals.setColorAt(i,pc.set(pick(['#ff9fbd','#ffd1de','#ffffff','#ffb3c8'])));}
+scene.add(petals);
+
+/* ---------- luzes ---------- */
+scene.add(new THREE.HemisphereLight('#d6ebff','#86b866',.95));
+const key=new THREE.DirectionalLight('#ffe4c2',2.1); key.position.set(5,9,7); key.castShadow=true;
+key.shadow.mapSize.set(2048,2048); Object.assign(key.shadow.camera,{left:-10,right:10,top:10,bottom:-10,near:1,far:40}); key.shadow.bias=-.0004; key.shadow.normalBias=.02; key.shadow.radius=3;
+scene.add(key); scene.add(key.target);
+const rim=new THREE.DirectionalLight('#ffb46e',1.5); rim.position.set(-5,4,-9); scene.add(rim);
+
+/* ---------- alvos de foco ---------- */
+const TARGETS={
+  noiva:{label:'Noiva', p:new THREE.Vector3(-.32,1.75,.15)},
+  noivo:{label:'Noivo', p:new THREE.Vector3(.34,1.79,.15)},
+  arco:{label:'Arco de flores', p:new THREE.Vector3(-1.1,3.3,ARCH_Z)},
+  luzes:{label:'Luzes', p:new THREE.Vector3(0,3.2,-5.7)},
+  arvores:{label:'Árvores', p:new THREE.Vector3(0.6,4,-14)},
+};
+state.focusPoint=TARGETS.noiva.p.clone(); let focusLabel='Noiva';
+
+/* ================= pós-processamento: desfoque físico ================= */
+const MS=renderer.capabilities.maxSamples>=4?4:0;
+const rtColor=new THREE.WebGLRenderTarget(4,4,{type:THREE.HalfFloatType, samples:MS, minFilter:THREE.LinearMipmapLinearFilter, magFilter:THREE.LinearFilter, generateMipmaps:true});
+const rtDepth=new THREE.WebGLRenderTarget(4,4,{minFilter:THREE.NearestFilter, magFilter:THREE.NearestFilter});
+const depthMat=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking});
+const postMat=new THREE.ShaderMaterial({
+  uniforms:{tColor:{value:rtColor.texture}, tDepth:{value:rtDepth.texture}, res:{value:new THREE.Vector2(4,4)}, cNear:{value:.1}, cFar:{value:600},
+    uF:{value:70}, uN:{value:2.8}, uFocus:{value:3}, uPxMm:{value:20}, uMaxR:{value:10}, uRound:{value:0}, uBlades:{value:BLADES}, uRot:{value:.3}, uExpo:{value:.92}},
+  vertexShader:'varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }',
+  fragmentShader:`
+    #include <packing>
+    uniform sampler2D tColor; uniform sampler2D tDepth; uniform vec2 res; uniform float cNear,cFar,uF,uN,uFocus,uPxMm,uMaxR,uRound,uBlades,uRot,uExpo;
+    varying vec2 vUv;
+    float vz(vec2 uv){ float d=unpackRGBAToDepth(texture2D(tDepth,uv)); return -perspectiveDepthToViewZ(d,cNear,cFar); }
+    float coc(float z){ float F=uFocus*1000.; float zz=max(z,.05)*1000.; float c=(uF*uF/(uN*(F-uF)))*(zz-F)/zz; return clamp(c*uPxMm*.5,-uMaxR,uMaxR); }
+    float polyR(float a){ float seg=6.2831853/uBlades; float r=mod(a+uRot,seg)-seg*.5; return cos(3.14159265/uBlades)/cos(r); }
+    vec3 srgb(vec3 c){ return mix(c*12.92, 1.055*pow(c,vec3(1./2.4))-.055, step(.0031308,c)); }
+    void main(){
+      vec3 base=texture2D(tColor,vUv).rgb; float zc=vz(vUv); float rc=abs(coc(zc)); vec3 col=base;
+      if(uMaxR>.6){
+        const int NS=84; float R=uMaxR;
+        float lod=clamp(log2(max(R*.19,1.))-.3,0.,5.);
+        float rot=6.2831853*fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715))));
+        vec3 acc=base; float ws=1.;
+        for(int i=0;i<NS;i++){
+          float fi=float(i); float r=sqrt((fi+.5)/float(NS))*R; float th=fi*2.39996323+rot;
+          vec2 o=vec2(cos(th),sin(th))*r; vec2 uv=vUv+o/res;
+          float zs=vz(uv); float rs=abs(coc(zs)); if(zs>zc) rs=min(rs,rc);
+          float pr=mix(1.,polyR(th),uRound);
+          float cv=clamp(rs-r/pr+1.,0.,1.);
+          acc+=texture2DLodEXT(tColor,uv,lod).rgb*cv; ws+=cv;
+        }
+        col=acc/ws;
       }
-      const gr=x.createRadialGradient(X,Y,0,X,Y,r);
-      gr.addColorStop(0,`rgba(255,232,170,${a})`); gr.addColorStop(.8,`rgba(255,205,120,${a*.75})`); gr.addColorStop(1,`rgba(255,190,100,${a*(dia>8?.95:.3)})`);
-      x.fillStyle=gr; x.fill();
-    });
-    x.globalCompositeOperation='source-over';
-  }
+      col*=uExpo;
+      col=clamp((col*(2.51*col+.03))/(col*(2.43*col+.59)+.14),0.,1.);
+      vec2 q=vUv-.5; col*=1.-dot(q,q)*.42; float l=dot(col,vec3(.2126,.7152,.0722)); col=clamp(mix(vec3(l),col,1.12),0.,1.);
+      gl_FragColor=vec4(srgb(col),1.);
+    }`,
+  depthTest:false, depthWrite:false
+});
+const postScene=new THREE.Scene(); const postCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+const quad=new THREE.Mesh(new THREE.PlaneGeometry(2,2),postMat); quad.frustumCulled=false; postScene.add(quad);
 
-  function applyBlur(){
-    const set=(n,d)=>{const s=Math.min(90,.42*blurPx(d)); C[n].style.filter=s<.25?'none':`blur(${s.toFixed(2)}px)`;};
-    set('far',D.colinas); set('mid',D.arvores); set('bride',state.s); set('fore',D.flores);
-  }
+/* ================= tamanho e câmera ================= */
+let cssW=1,cssH=1,bufW=1,bufH=1, scaleQ=Math.min(window.devicePixelRatio||1,1.75), filmW=36, filmH=24;
+function resize(){
+  const r=viewer.getBoundingClientRect(); cssW=Math.max(1,r.width); cssH=Math.max(1,r.height);
+  bufW=Math.round(cssW*scaleQ); bufH=Math.round(cssH*scaleQ);
+  renderer.setSize(bufW,bufH,false); rtColor.setSize(bufW,bufH); rtDepth.setSize(bufW,bufH);
+  postMat.uniforms.res.value.set(bufW,bufH);
+  [filmW,filmH]=film(cssW/cssH); camera.aspect=cssW/cssH; needsRender=true;
+}
+function updateCamera(){
+  camera.fov=2*Math.atan(filmH/2/state.f)*180/Math.PI;
+  camera.position.set(0,CAM_H,state.s); camera.lookAt(0,lookY(),0); camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+}
+const _v=new THREE.Vector3();
+function lookY(){return 1.42+.2*Math.max(0,Math.min(1,(5-state.s)/2.5));}
+function focusGoal(){ _v.copy(state.focusPoint).applyMatrix4(camera.matrixWorldInverse); return Math.max(.38,-_v.z); }
+function cocPx(z,N,F){const f=state.f, c=(f*f/(N*(F*1000-f)))*(z*1000-F*1000)/(z*1000); return c*(bufH/filmH)/2;}
+function maxRadius(N){
+  const F=state.focusCur; let nearZ=Infinity;
+  CHAIR_Z.forEach(z=>{const d=state.s-z; if(d>.35) nearZ=Math.min(nearZ,d);});
+  const tilt=Math.atan((CAM_H-lookY())/state.s), half=camera.fov*Math.PI/360; const gd=CAM_H/Math.tan(Math.min(1.5,half+tilt)); nearZ=Math.min(nearZ,gd);
+  const r=Math.max(Math.abs(cocPx(450,N,F)), Math.abs(cocPx(Math.max(.35,nearZ),N,F)));
+  return Math.min(r, bufH*.075);
+}
+function setPost(N){
+  const u=postMat.uniforms; u.uF.value=state.f; u.uN.value=N; u.uFocus.value=state.focusCur; u.uPxMm.value=bufH/filmH;
+  u.uMaxR.value=maxRadius(N); u.uRound.value=Math.min(1,Math.max(0,(N-2.8)/(7-2.8))); u.cNear.value=camera.near; u.cFar.value=camera.far;
+}
 
-  function drawScene(){ if(!Wv) return; drawFar(); drawMid(); drawBride(); drawFore(); drawLights(); applyBlur(); updateUI(); }
-  function drawOptics(){ drawLights(); applyBlur(); updateUI(); }
+/* ================= render ================= */
+let needsRender=true, tPrev=performance.now(), tAcc=0, frames=0, emaDt=16, visible=true, ready=false;
+const preQ=[], postQ=[];
+function renderFrame(){
+  updateCamera();
+  renderer.shadowMap.autoUpdate=true;
+  renderer.setRenderTarget(rtColor); renderer.setClearColor(0x000000,1); renderer.render(scene,camera);
+  renderer.shadowMap.autoUpdate=false;
+  scene.overrideMaterial=depthMat; renderer.setRenderTarget(rtDepth); renderer.setClearColor(0xffffff,1); renderer.render(scene,camera); scene.overrideMaterial=null;
+  renderer.setRenderTarget(null);
+  if(state.compare){
+    const sx=Math.round(bufW*state.split); renderer.setScissorTest(true);
+    renderer.setScissor(0,0,sx,bufH); renderer.setViewport(0,0,bufW,bufH); setPost(2.8); renderer.render(postScene,postCam);
+    renderer.setScissor(sx,0,bufW-sx,bufH); setPost(16); renderer.render(postScene,postCam);
+    renderer.setScissorTest(false);
+  } else { setPost(state.N); renderer.render(postScene,postCam); }
+}
+function animateScene(t,dt){
+  for(let i=0;i<PET;i++){const p=pData[i]; p.y-=p.sp*dt; p.x+=Math.sin(t*1.1+p.ph)*.18*dt; p.r+=dt*1.5; if(p.y<.12){p.y=3.8+rnd()*.6; p.x=(rnd()-.5)*5;}
+    dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(p.r,p.r*.7,0); dummy.scale.set(.034,.007,.026); dummy.updateMatrix(); petals.setMatrixAt(i,dummy.matrix);}
+  petals.instanceMatrix.needsUpdate=true;
+  bulbMats.forEach((m,i)=>m.color.set('#ffd27f').multiplyScalar(5.6+i*.8+Math.sin(t*2.3+i*2)*.5));
+  bride.rotation.y=Math.sin(t*.7)*.05; groom.rotation.y=-.04+Math.sin(t*.7+1)*.04;
+}
+function loop(now){
+  requestAnimationFrame(loop);
+  const dt=Math.min(.05,(now-tPrev)/1000); tPrev=now;
+  if(!visible||document.hidden){ while(preQ.length) preQ.shift()(); return; }
+  const t=now/1000;
+  if(state.tour) tourStep(now);
+  // foco suave
+  updateCamera();
+  const goal=focusGoal(); const lf=Math.log(state.focusCur), lg=Math.log(goal);
+  state.focusCur=Math.exp(lf+(lg-lf)*Math.min(1,dt*7));
+  animateScene(t,dt);
+  while(preQ.length) preQ.shift()();
+  renderFrame();
+  while(postQ.length) postQ.shift()();
+  updateOverlay(); updateUI();
+  if(!ready){ ready=true; loadEl.hidden=true; setTimeout(newQuestion,300); }
+  emaDt=emaDt*.92+(dt*1000)*.08; frames++;
+  if(frames%90===0 && emaDt>30 && scaleQ>.6){ scaleQ=Math.max(.6,scaleQ*.82); resize(); }
+}
 
-  // ---------- diafragma ----------
-  function drawIris(){
-    const c=$('iris'), x=c.getContext('2d'), S=c.width, cx=S/2, cy=S/2, R=S*.46;
-    x.clearRect(0,0,S,S);
-    const cs=getComputedStyle(document.documentElement);
-    ell(x,cx,cy,R,R,'#1d2125');
-    const r=R*.88*(2.8/state.N);
-    const pts=[]; for(let i=0;i<BLADES;i++){const a=i/BLADES*Math.PI*2-Math.PI/2+state.N*.05; pts.push([cx+Math.cos(a)*r, cy+Math.sin(a)*r]);}
-    // lâminas
-    x.strokeStyle='#4a5158'; x.lineWidth=2;
-    for(let i=0;i<BLADES;i++){const [ax,ay]=pts[i], [bx,by]=pts[(i+1)%BLADES], dx=bx-ax, dy=by-ay, L=Math.hypot(dx,dy)||1;
-      x.beginPath(); x.moveTo(ax,ay); x.lineTo(ax+dx/L*R*1.4, ay+dy/L*R*1.4); x.save(); x.beginPath(); x.restore();
-      x.save(); x.beginPath(); x.arc(cx,cy,R,0,Math.PI*2); x.clip(); x.beginPath(); x.moveTo(ax,ay); x.lineTo(ax+dx/L*R*1.6, ay+dy/L*R*1.6); x.stroke(); x.restore();}
-    // abertura
-    x.beginPath(); pts.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b)); x.closePath();
-    const g=x.createRadialGradient(cx,cy,0,cx,cy,Math.max(r,1));
-    g.addColorStop(0,'#fff4d6'); g.addColorStop(1,'#f2b24a'); x.fillStyle=g; x.fill();
-    x.lineWidth=S*.03; x.strokeStyle=cs.getPropertyValue('--accent-fill').trim()||'#d98a00';
-    x.beginPath(); x.arc(cx,cy,R,0,Math.PI*2); x.stroke();
-  }
+/* ================= overlay e UI ================= */
+const afEl=$('af'), afLbl=$('afLbl');
+function updateOverlay(){
+  _v.copy(state.focusPoint).project(camera);
+  const x=(_v.x*.5+.5)*cssW, y=(-_v.y*.5+.5)*cssH; const on=_v.z<1&&x>4&&x<cssW-4&&y>4&&y<cssH-4;
+  afEl.style.display=on?'block':'none'; afEl.style.left=x+'px'; afEl.style.top=y+'px';
+}
+let lastUI='';
+function updateUI(){
+  const key=[state.N.toFixed(2),state.f,state.s,state.focusCur.toFixed(2),focusLabel,state.compare].join('|');
+  if(key===lastUI) return; lastUI=key;
+  const sp=speedFor(state.N), light=(2.8/state.N)**2*100;
+  $('nBig').textContent=fmtN(state.N);
+  $('nSmall').textContent=(light>=10?Math.round(light):fmt(light,1))+'% de luz · '+sp;
+  $('exif').innerHTML=`<b>${Math.round(state.f)}mm</b> ${fmtN(state.N)} · ${sp} · ISO 100`;
+  $('fOut').textContent=Math.round(state.f)+' mm'; $('sOut').textContent=fmt(state.s,1)+' m';
+  afLbl.textContent=focusLabel;
+  apRing.el.setAttribute('aria-valuetext',fmtN(state.N)); zRing.el.setAttribute('aria-valuetext',Math.round(state.f)+' mm');
+  drawIris(); drawDof();
+}
+function drawIris(){
+  const c=$('iris'), x=c.getContext('2d'), S=c.width, cx=S/2, cy=S/2, R=S*.46;
+  x.clearRect(0,0,S,S);
+  x.beginPath(); x.arc(cx,cy,R,0,Math.PI*2); x.fillStyle='#1b1f24'; x.fill();
+  const r=R*.86*(2.8/state.N), pts=[];
+  for(let i=0;i<BLADES;i++){const a=i/BLADES*Math.PI*2-Math.PI/2+state.N*.05; pts.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r]);}
+  x.save(); x.beginPath(); x.arc(cx,cy,R,0,Math.PI*2); x.clip(); x.strokeStyle='#4c545d'; x.lineWidth=2;
+  for(let i=0;i<BLADES;i++){const [ax,ay]=pts[i],[bx,by]=pts[(i+1)%BLADES],dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy)||1; x.beginPath(); x.moveTo(ax,ay); x.lineTo(ax+dx/L*R*1.7,ay+dy/L*R*1.7); x.stroke();}
+  x.restore();
+  x.beginPath(); pts.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b)); x.closePath();
+  const g=x.createRadialGradient(cx,cy,0,cx,cy,Math.max(r,1)); g.addColorStop(0,'#fff6db'); g.addColorStop(1,'#ffc23a'); x.fillStyle=g; x.fill();
+  x.lineWidth=S*.045; x.strokeStyle='#ffc83a'; x.beginPath(); x.arc(cx,cy,R,0,Math.PI*2); x.stroke();
+}
+function itemsNow(){
+  const s=state.s, list=[['Noiva',s-.15],['Arco',s-ARCH_Z],['Luzes',s+5.7],['Árvores',s+14]];
+  let ch=null; CHAIR_Z.forEach(z=>{const d=s-z; if(d>.35&&(ch===null||d<ch)) ch=d;}); if(ch!==null) list.unshift(['Cadeiras',ch]);
+  return list;
+}
+function drawDof(){
+  const N=state.compare?2.8:state.N, F=state.focusCur, {near,far}=dofOf(N,state.f,F);
+  const x0=70,x1=975,lo=Math.log(.5),hi=Math.log(60);
+  const xs=d=>x0+(Math.log(Math.min(Math.max(d,.5),60))-lo)/(hi-lo)*(x1-x0);
+  let s=`<rect class="t-band" x="${xs(near)}" y="38" width="${Math.max(3,xs(far)-xs(near))}" height="44" rx="6"/>`;
+  s+=`<line class="t-axis" x1="${x0}" y1="60" x2="${x1}" y2="60"/>`;
+  [.5,1,2,3,5,10,20,50].forEach(t=>{s+=`<line class="t-tick" x1="${xs(t)}" y1="84" x2="${xs(t)}" y2="92"/><text class="t-lbl" x="${xs(t)}" y="110" text-anchor="middle">${String(t).replace('.',',')} m</text>`;});
+  s+=`<line class="t-focus" x1="${xs(F)}" y1="28" x2="${xs(F)}" y2="92"/>`;
+  s+=`<g transform="translate(16,47)"><rect class="t-cam" x="0" y="3" width="32" height="22" rx="5"/><rect class="t-cam" x="9" y="-3" width="13" height="7" rx="2"/><rect class="t-cam" x="30" y="7" width="12" height="14" rx="3"/></g>`;
+  let lastX=-99,flip=0;
+  itemsNow().forEach(([n,d])=>{const inside=d>=near-.01&&d<=far+.01, X=xs(d); flip=(X-lastX<74)?1-flip:0; lastX=X;
+    s+=`<circle class="${inside?'t-in':'t-out'}" cx="${X}" cy="60" r="8"/><text class="t-name" x="${X}" y="${flip?142:24}" text-anchor="middle">${n}${inside?' ✓':''}</text>`;});
+  $('dofSvg').innerHTML=s;
+  $('dofRange').textContent=`${fmtM(near)} a ${fmtM(far)}`;
+  const total=far-near;
+  const tTxt=!isFinite(total)?`tudo de ${fmtM(near)} até o infinito`:`só ${fmtM(total)}, de ${fmtM(near)} a ${fmtM(far)}`;
+  let extra='';
+  if(focusLabel==='Noiva'||focusLabel==='Noivo'){ extra= total<.35?' É tão fino que dá para errar o foco entre o olho e a orelha.' : total<1.2?' O casal fica nítido e o fundo continua separado dele.' : total<6?' O arco já começa a aparecer.' : ' Casal e cenário ficam nítidos juntos.'; }
+  $('dofSum').innerHTML=`Foco em <strong>${focusLabel.toLowerCase()}</strong> a ${fmtM(F)}, em <strong>${fmtN(N)}</strong> e ${Math.round(state.f)}mm: fica nítido <strong>${tTxt}</strong>.${extra}`;
+}
 
-  // ---------- régua de profundidade de campo ----------
-  const fmtNum=(v,dig)=>v.toFixed(dig).replace('.',',');
-  const fmtM=m=>!isFinite(m)?'infinito':m<1?Math.round(m*100)+' cm':fmtNum(m,2)+' m';
-  function drawDof(){
-    const {near,far}=dof(), x0=60, x1=975, lo=Math.log(.5), hi=Math.log(70);
-    const xs=d=>x0+(Math.log(Math.min(Math.max(d,.5),70))-lo)/(hi-lo)*(x1-x0);
-    const items=[['Flores',D.flores],['Noiva',state.s],['Árvores',D.arvores],['Luzes',D.luzes],['Colinas',D.colinas]];
-    let s='';
-    s+=`<rect class="t-band" x="${xs(near)}" y="38" width="${Math.max(2,xs(far)-xs(near))}" height="44" rx="3"/>`;
-    s+=`<line class="t-axis" x1="${x0}" y1="60" x2="${x1}" y2="60"/>`;
-    [.5,1,2,3,5,10,20,50].forEach(t=>{s+=`<line class="t-tick" x1="${xs(t)}" y1="84" x2="${xs(t)}" y2="92"/><text class="t-lbl" x="${xs(t)}" y="110" text-anchor="middle">${String(t).replace('.',',')} m</text>`});
-    s+=`<line class="t-focus" x1="${xs(focusDist())}" y1="28" x2="${xs(focusDist())}" y2="92"/>`;
-    // câmera
-    s+=`<g transform="translate(14,48)"><rect class="t-cam" x="0" y="2" width="30" height="20" rx="3"/><rect class="t-cam" x="8" y="-3" width="12" height="6" rx="1"/><rect class="t-cam" x="28" y="6" width="10" height="12" rx="1"/></g>`;
-    let lastX=-99, flip=0;
-    items.forEach(([n,d])=>{const inside=d>=near-1e-6&&d<=far+1e-6, X=xs(d); flip=(X-lastX<70)?1-flip:0; lastX=X;
-      s+=`<circle class="${inside?'t-in':'t-out'}" cx="${X}" cy="60" r="7"/>`;
-      s+=`<text class="t-name" x="${X}" y="${flip?140:24}" text-anchor="middle">${n}${inside?' ✓':''}</text>`;});
-    $('dofSvg').innerHTML=s;
-    $('dofRange').textContent=`${fmtM(near)} a ${fmtM(far)}`;
-    const total=far-near;
-    const tTxt=!isFinite(total)?`tudo de ${fmtM(near)} até o infinito`:`só ${fmtM(total)}, de ${fmtM(near)} a ${fmtM(far)}`;
-    const fName={noiva:'na noiva',arvores:'nas árvores',luzes:'nas luzes',flores:'nas flores'}[state.focus];
-    let extra='';
-    if(state.focus==='noiva'){
-      extra = total<.4?' É uma fatia tão fina que dá para errar o foco entre o olho e a orelha.' : total<2?' A noiva inteira fica nítida, e o fundo continua separado dela.' : ' Noiva e fundo ficam nítidos juntos.';
-    }
-    $('dofSum').innerHTML=`Com foco ${fName} a ${fmtM(focusDist())}, em <strong>f/${fmtNum(state.N,state.N<10?1:0)}</strong> e ${state.f}mm, fica nítido <strong>${tTxt}</strong>.${extra}`;
-  }
+/* ---------- legenda grande ---------- */
+const capEl=$('cap'); let capTimer=0;
+function caption(big,sub,ms,yellow){
+  clearTimeout(capTimer); capEl.hidden=false; capEl.classList.remove('show'); void capEl.offsetWidth; capEl.classList.add('show');
+  $('capBig').textContent=big; $('capBig').classList.toggle('yel',!!yellow); $('capSub').textContent=sub; $('capSub').hidden=!sub;
+  if(ms) capTimer=setTimeout(()=>{capEl.hidden=true;},ms);
+}
+function autoCaption(){
+  if(state.tour) return;
+  const {near,far}=dofOf(state.N,state.f,state.focusCur), total=far-near;
+  let big='DESFOQUE SUAVE', y=false;
+  if(total<.6&&state.f>=45){big='FUNDO DERRETIDO'; y=true;}
+  else if(!isFinite(total)||total>25){big='TUDO NÍTIDO';}
+  else if(state.N>=8){big='MAIS NITIDEZ';}
+  caption(big,`${fmtN(state.N)} · ${Math.round(state.f)}mm · nítido: ${isFinite(total)?fmtM(total):'até o infinito'}`,1900,y);
+}
 
-  // ---------- interface ----------
-  function nearestStop(N){let b=0;STOPS.forEach((v,i)=>{if(Math.abs(Math.log(v/N))<Math.abs(Math.log(STOPS[b]/N)))b=i});return b;}
-  function speedFor(N){const t=(1/1000)*(N/2.8)**2; let best=SPEEDS[0]; SPEEDS.forEach(v=>{if(Math.abs(Math.log(1/v/t))<Math.abs(Math.log(1/best/t)))best=v}); return '1/'+best;}
-  function updateUI(){
-    const Ntxt='f/'+fmtNum(state.N,state.N<10?1:0);
-    $('apVal').textContent=Ntxt; $('barN').innerHTML=`<b>${Ntxt}</b>`;
-    $('flVal').innerHTML=`${state.f}<small>mm</small>`; $('barF').innerHTML=`<b>${state.f}</b>mm`;
-    $('dsVal').innerHTML=`${fmtNum(state.s,1)}<small>m</small>`;
-    $('barD').textContent='foco '+fmtM(focusDist());
-    const sp=speedFor(state.N); $('speed').textContent=sp; $('barS').textContent=sp;
-    const light=(2.8/state.N)**2*100; $('light').textContent=(light>=10?Math.round(light):fmtNum(light,1))+'%';
-    const bp=blurMM(D.arvores)/SENSOR*100;
-    $('bgq').textContent= state.focus!=='noiva'?'em foco: '+{arvores:'árvores',luzes:'luzes',flores:'flores'}[state.focus] : bp>1.4?'muito desfocado':bp>.7?'bem desfocado':bp>.3?'levemente desfocado':'quase nítido';
-    // AF
-    const tg={noiva:[0,1.56,state.s],arvores:[2.4,4.2,D.arvores],luzes:[0,2.7,D.luzes],flores:[.5,1.1,D.flores]}[state.focus];
-    const p=Wv*state.f/(SENSOR*tg[2]); let ax=Wv/2+tg[0]*p, ay=Hv/2+(CAM_H-tg[1])*p;
-    const off=ax<0||ax>Wv||ay<0||ay>Hv-34;
-    ax=Math.min(Math.max(ax,30),Wv-30); ay=Math.min(Math.max(ay,30),Hv-64);
-    $('af').style.left=ax+'px'; $('af').style.top=ay+'px';
-    const note=$('afNote'); note.hidden=!off; if(off) note.textContent='Fora do enquadramento: abra o zoom (24mm) para ver';
-    drawIris(); drawDof();
-  }
+/* ================= anéis da lente ================= */
+function makeRing(el,o){
+  const PAD=700, track=document.createElement('div'); track.className='ring-track'; el.appendChild(track);
+  const idx=document.createElement('div'); idx.className='ring-index'; el.appendChild(idx);
+  track.style.width=(PAD*2+(o.max-o.min)*o.ppu)+'px';
+  o.ticks.forEach(t=>{const d=document.createElement('div'); d.className='tick'+(t.label?' major':'')+(t.gold?' gold':''); d.style.left=(PAD+(t.pos-o.min)*o.ppu)+'px'; if(t.label){const s=document.createElement('span'); s.textContent=t.label; d.appendChild(s);} track.appendChild(d);});
+  el.setAttribute('aria-valuemin',o.min); el.setAttribute('aria-valuemax',o.max);
+  let pos=o.value, anim=0;
+  const clamp=p=>Math.max(o.min,Math.min(o.max,p));
+  function paint(){track.style.transform=`translateX(${el.clientWidth/2-PAD-(pos-o.min)*o.ppu}px)`; el.setAttribute('aria-valuenow',pos.toFixed(2));}
+  function set(p,silent){pos=clamp(p); paint(); if(!silent) o.onInput(pos);}
+  function settle(){ if(!o.snap){o.onChange&&o.onChange(pos); return;} const target=o.snap(pos), from=pos, t0=performance.now();
+    cancelAnimationFrame(anim); const step=now=>{const k=Math.min(1,(now-t0)/180), e=1-Math.pow(1-k,3); set(from+(target-from)*e); if(k<1) anim=requestAnimationFrame(step); else o.onChange&&o.onChange(pos);}; anim=requestAnimationFrame(step); }
+  let drag=null;
+  el.addEventListener('pointerdown',e=>{cancelAnimationFrame(anim); drag={x:e.clientX,p:pos,id:e.pointerId,moved:false}; el.setPointerCapture(e.pointerId); o.onStart&&o.onStart();});
+  el.addEventListener('pointermove',e=>{if(!drag) return; const dx=e.clientX-drag.x; if(Math.abs(dx)>2) drag.moved=true; set(drag.p-dx/o.ppu);});
+  const end=e=>{if(!drag) return; if(!drag.moved){const r=el.getBoundingClientRect(); set(pos+(e.clientX-(r.left+r.width/2))/o.ppu);} drag=null; settle();};
+  el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
+  el.addEventListener('wheel',e=>{e.preventDefault(); o.onStart&&o.onStart(); set(pos+(e.deltaY+e.deltaX>0?1:-1)*o.wheel); clearTimeout(el._wt); el._wt=setTimeout(settle,160);},{passive:false});
+  el.addEventListener('keydown',e=>{const k=e.key; let d=0; if(k==='ArrowRight'||k==='ArrowUp') d=o.wheel; else if(k==='ArrowLeft'||k==='ArrowDown') d=-o.wheel; else if(k==='Home') d=o.min-pos; else if(k==='End') d=o.max-pos; else return; e.preventDefault(); o.onStart&&o.onStart(); set(pos+d); settle();});
+  new ResizeObserver(paint).observe(el); paint();
+  return {el,set,get:()=>pos};
+}
+const apTicks=STOPS.map((N,i)=>({pos:i,label:(i%3===0)?(N<10?String(N).replace('.',','):String(N)):null, gold:i===0}));
+const apRing=makeRing($('apRing'),{min:0,max:18,ppu:34,value:0,wheel:1,ticks:apTicks,snap:p=>Math.round(p),
+  onStart:stopTour, onInput:p=>{state.N=nFromPos(p);}, onChange:autoCaption});
+const zTicks=[]; for(let mm=24;mm<=70;mm+=2) zTicks.push({pos:mm,label:[24,28,35,50,70].includes(mm)?String(mm):null}); zTicks.push({pos:35,label:'35'}); zTicks.push({pos:50,label:'50'});
+const zRing=makeRing($('zRing'),{min:24,max:70,ppu:8,value:70,wheel:2,ticks:zTicks,snap:p=>Math.round(p),
+  onStart:stopTour, onInput:p=>{state.f=p;}, onChange:autoCaption});
 
-  // controles
-  const ap=$('ap'), fl=$('fl'), ds=$('ds');
-  ap.addEventListener('input',()=>{stopAnim(); state.N=STOPS[+ap.value]; drawOptics();});
-  fl.addEventListener('input',()=>{state.f=+fl.value; drawScene();});
-  ds.addEventListener('input',()=>{state.s=+ds.value; drawScene();});
-  $('focusSeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return;
-    state.focus=b.dataset.f; document.querySelectorAll('#focusSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false')); drawOptics();});
-  $('presets').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; stopAnim();
-    const [f,N,s]=b.dataset.p.split(',').map(Number); state.f=f; state.N=N; state.s=s; state.focus='noiva';
-    fl.value=f; ap.value=STOPS.indexOf(N); ds.value=s;
-    document.querySelectorAll('#focusSeg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.f==='noiva'?'true':'false'));
-    drawScene();});
+/* ---------- toque para focar ---------- */
+const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
+const hitList=scene.children.filter(o=>!o.userData.noHit);
+let down=null;
+viewer.addEventListener('pointerdown',e=>{ if(e.target.closest('.split')) return; down={x:e.clientX,y:e.clientY}; });
+viewer.addEventListener('pointerup',e=>{
+  if(!down||e.target.closest('.split')) return; const moved=Math.hypot(e.clientX-down.x,e.clientY-down.y); down=null; if(moved>8) return;
+  const r=viewer.getBoundingClientRect(); ndc.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+  updateCamera(); ray.setFromCamera(ndc,camera); const hit=ray.intersectObjects(hitList,true)[0];
+  let label='Céu', point;
+  if(hit){ point=hit.point.clone(); let o=hit.object; while(o&&!o.userData.label) o=o.parent; label=o?o.userData.label:'Cena'; }
+  else { point=ray.ray.at(400,new THREE.Vector3()); }
+  stopTour(); setFocus(point,label);
+});
+function setFocus(point,label){
+  state.focusPoint.copy(point); focusLabel=label; $('tapHint').hidden=true;
+  afEl.classList.remove('pulse'); void afEl.offsetWidth; afEl.classList.add('pulse');
+  setTimeout(autoCaption,380);
+}
+$('focusChips').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; stopTour(); const t=TARGETS[b.dataset.t]; setFocus(t.p,t.label);});
 
-  // animação da abertura
-  let raf=0, t0=0;
-  const playBtn=$('play');
-  function frame(ts){ if(!t0) t0=ts; const ph=((ts-t0)/7000)%1;
-    state.N=2.8*Math.pow(22/2.8,(1-Math.cos(ph*2*Math.PI))/2); ap.value=nearestStop(state.N); drawOptics(); raf=requestAnimationFrame(frame); }
-  function stopAnim(){ if(!raf) return; cancelAnimationFrame(raf); raf=0; t0=0; state.N=STOPS[+ap.value]; playBtn.textContent='Animar abertura'; playBtn.setAttribute('aria-pressed','false'); }
-  playBtn.addEventListener('click',()=>{ if(raf){stopAnim(); drawOptics(); return;} playBtn.textContent='Pausar'; playBtn.setAttribute('aria-pressed','true'); raf=requestAnimationFrame(frame); });
+/* ---------- mais controles ---------- */
+$('moreBtn').addEventListener('click',()=>{const m=$('more'), open=m.hidden; m.hidden=!open; $('moreBtn').setAttribute('aria-expanded',String(open)); if(open) requestAnimationFrame(()=>zRing.set(state.f,true));});
+$('dist').addEventListener('input',e=>{stopTour(); state.s=+e.target.value;});
+$('dist').addEventListener('change',autoCaption);
+$('presets').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; stopTour();
+  const [f,N,s]=b.dataset.p.split(',').map(Number); glide({f,N,s,focus:'noiva'},700,autoCaption);});
 
-  new ResizeObserver(resize).observe(vf);
-  if(window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',drawIris);
-  resize();
+/* ---------- transição suave entre configurações ---------- */
+let glideAnim=0;
+function glide(to,ms,done){
+  cancelAnimationFrame(glideAnim);
+  const from={N:state.N,f:state.f,s:state.s,p:state.focusPoint.clone()}; const tp=to.focus?TARGETS[to.focus].p:from.p; const t0=performance.now();
+  if(to.focus) focusLabel=TARGETS[to.focus].label;
+  const step=now=>{const k=Math.min(1,(now-t0)/ms), e=k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
+    if(to.N!=null) state.N=Math.exp(Math.log(from.N)+(Math.log(to.N)-Math.log(from.N))*e);
+    if(to.f!=null) state.f=from.f+(to.f-from.f)*e;
+    if(to.s!=null) state.s=from.s+(to.s-from.s)*e;
+    state.focusPoint.lerpVectors(from.p,tp,e);
+    apRing.set(posFromN(state.N),true); zRing.set(state.f,true); $('dist').value=state.s;
+    if(k<1) glideAnim=requestAnimationFrame(step); else done&&done();};
+  glideAnim=requestAnimationFrame(step);
+}
+
+/* ---------- tour guiado ---------- */
+const TOUR=[
+  {to:{f:70,N:2.8,s:2.8,focus:'noiva'}, big:'FUNDO DERRETIDO', sub:'70mm em f/2.8: só o casal fica nítido', y:true},
+  {to:{focus:'arco'}, big:'TROCA DE FOCO', sub:'Mesmo f/2.8, foco no arco: agora o casal desfoca'},
+  {to:{focus:'noiva',N:5.6}, big:'f/5.6', sub:'Fechando a abertura, o arco começa a aparecer', y:true},
+  {to:{N:11}, big:'f/11', sub:'O cenário aparece, mas entra 16 vezes menos luz', y:true},
+  {to:{f:24,s:9,N:11}, big:'24MM', sub:'Grande angular: cabe a cerimônia inteira', y:true},
+  {to:{N:2.8}, big:'24MM EM f/2.8', sub:'Mesmo aberta, a 24mm desfoca bem menos que a 70mm'},
+  {to:{f:70,s:2.8,N:2.8}, big:'VOLTA PRO RETRATO', sub:'Zoom + abertura grande + fundo longe = máximo desfoque', y:true},
+];
+function tourStep(now){
+  const T=state.tour; const i=Math.floor((now-T.t0)/3600);
+  if(i!==T.i){ if(i>=TOUR.length){ stopTour(); caption('SUA VEZ','Gire o anel e toque na cena para focar',2600,true); return; }
+    T.i=i; const st=TOUR[i]; glide(st.to,1100); caption(st.big,`${i+1}/${TOUR.length} · ${st.sub}`,0,st.y); }
+}
+function startTour(){ if(state.compare) toggleCompare(false); state.tour={t0:performance.now(),i:-1}; $('tourBtn').setAttribute('aria-pressed','true'); $('tapHint').hidden=true; }
+function stopTour(){ if(!state.tour) return; state.tour=null; cancelAnimationFrame(glideAnim); $('tourBtn').setAttribute('aria-pressed','false'); capEl.hidden=true; }
+$('tourBtn').addEventListener('click',()=>state.tour?stopTour():startTour());
+
+/* ---------- comparar ---------- */
+const splitEl=$('split');
+function toggleCompare(on){
+  state.compare=on; splitEl.hidden=!on; $('splitL').hidden=!on; $('splitR').hidden=!on; $('cmpBtn').setAttribute('aria-pressed',String(on));
+  placeSplit(); if(on){ stopTour(); caption('ARRASTE A LINHA','Esquerda f/2.8 · direita f/16',2200,true); }
+}
+function placeSplit(){ splitEl.style.left=(state.split*100)+'%'; }
+$('cmpBtn').addEventListener('click',()=>toggleCompare(!state.compare));
+let sDrag=false;
+splitEl.addEventListener('pointerdown',e=>{sDrag=true; splitEl.setPointerCapture(e.pointerId); e.stopPropagation();});
+splitEl.addEventListener('pointermove',e=>{if(!sDrag) return; const r=viewer.getBoundingClientRect(); state.split=Math.max(.05,Math.min(.95,(e.clientX-r.left)/r.width)); placeSplit();});
+splitEl.addEventListener('pointerup',()=>{sDrag=false;});
+
+/* ---------- tirar foto ---------- */
+let audio=null, nShots=0;
+function shutterSound(){
+  try{ audio=audio||new (window.AudioContext||window.webkitAudioContext)(); const t=audio.currentTime;
+    [[0,1700,.9],[.085,2600,.55]].forEach(([dt,fr,g])=>{const len=.05, buf=audio.createBuffer(1,Math.floor(audio.sampleRate*len),audio.sampleRate), d=buf.getChannelData(0);
+      for(let j=0;j<d.length;j++) d[j]=(Math.random()*2-1)*Math.pow(1-j/d.length,3);
+      const src=audio.createBufferSource(); src.buffer=buf; const bp=audio.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=fr; bp.Q.value=.9; const gn=audio.createGain(); gn.gain.value=g;
+      src.connect(bp).connect(gn).connect(audio.destination); src.start(t+dt);}); }catch(e){}
+}
+$('shoot').addEventListener('click',()=>{
+  shutterSound(); const fl=$('flash'); fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go');
+  postQ.push(()=>{
+    const url=canvas.toDataURL('image/jpeg',.88);
+    const fig=document.createElement('figure'); fig.className='polaroid'; fig.style.transform=`rotate(${(Math.random()*6-3).toFixed(1)}deg)`;
+    const img=document.createElement('img'); img.src=url; img.alt=`Foto em ${fmtN(state.N)} e ${Math.round(state.f)}mm`;
+    const cap=document.createElement('figcaption');
+    cap.innerHTML=state.compare?`f/2.8 × f/16<small>${Math.round(state.f)}mm · foco: ${focusLabel.toLowerCase()}</small>`:`${Math.round(state.f)}mm · ${fmtN(state.N)} · ${speedFor(state.N)}<small>foco: ${focusLabel.toLowerCase()}</small>`;
+    fig.append(img,cap); const list=$('shots'); list.prepend(fig); while(list.children.length>10) list.lastChild.remove();
+    nShots++; $('shotsEmpty').hidden=true; $('shotCount').textContent=nShots+(nShots===1?' foto':' fotos');
+  });
+});
+
+/* ---------- desafio ---------- */
+let quiz={answer:2.8, done:false}, score={ok:0,total:0};
+const QEXP={2.8:'Em f/2.8 o fundo some num desfoque cremoso e as luzinhas viram bolas grandes.',5.6:'Em f/5.6 o fundo ainda está suave, mas já dá para reconhecer o arco e as árvores.',16:'Em f/16 quase tudo fica nítido e as luzinhas viram pontinhos.'};
+function newQuestion(){
+  const N=[2.8,5.6,16][Math.floor(Math.random()*3)], f=[50,70][Math.floor(Math.random()*2)];
+  quiz={answer:N, done:false}; $('fb').textContent=''; document.querySelectorAll('#opts .btn').forEach(b=>b.classList.remove('ok','no'));
+  preQ.push(()=>{
+    const keep={N:state.N,f:state.f,s:state.s,fc:state.focusCur,p:state.focusPoint.clone(),cmp:state.compare};
+    state.N=N; state.f=f; state.s=3; state.compare=false; state.focusPoint.copy(TARGETS.noiva.p); updateCamera(); state.focusCur=focusGoal();
+    renderFrame(); $('quizImg').src=canvas.toDataURL('image/jpeg',.86);
+    state.N=keep.N; state.f=keep.f; state.s=keep.s; state.focusCur=keep.fc; state.focusPoint.copy(keep.p); state.compare=keep.cmp;
+  });
+}
+$('opts').addEventListener('click',e=>{const b=e.target.closest('.btn'); if(!b||quiz.done) return; quiz.done=true; const n=+b.dataset.n; score.total++;
+  const right=n===quiz.answer; if(right) score.ok++;
+  document.querySelectorAll('#opts .btn').forEach(x=>{if(+x.dataset.n===quiz.answer) x.classList.add('ok'); else if(x===b) x.classList.add('no');});
+  $('fb').innerHTML=(right?'<strong>Acertou!</strong> ':`<strong>Quase.</strong> Era ${fmtN(quiz.answer)}. `)+QEXP[quiz.answer];
+  $('score').textContent=`${score.ok} de ${score.total}`;});
+$('nextQ').addEventListener('click',newQuestion);
+
+/* ================= início ================= */
+new ResizeObserver(resize).observe(viewer);
+new IntersectionObserver(es=>{visible=es[0].isIntersecting;}).observe(viewer);
+resize(); updateCamera(); state.focusCur=focusGoal();
+requestAnimationFrame(loop);
 })();
 </script>
 </body>

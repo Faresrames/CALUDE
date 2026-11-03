@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador de Lente 24-70</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+/* Layout: o visor da câmera é a peça principal; ao lado, um painel com os anéis da lente; embaixo, a régua de profundidade de campo e a explicação */
+:root{
+  --bg:#e8ebed;
+  --surface:#f7f8f9;
+  --ink:#14181c;
+  --muted:#56626c;
+  --line:#cad2d8;
+  --accent:#9c5a00;
+  --accent-fill:#d98a00;
+  --sharp:#1f8455;
+  --sharp-fill:rgba(31,132,85,.16);
+  --off:#9aa5ae;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111416; --surface:#1a1e21; --ink:#e8ecee; --muted:#97a2ab; --line:#2c3237;
+    --accent:#f2a93b; --accent-fill:#f2a93b; --sharp:#4cc38a; --sharp-fill:rgba(76,195,138,.16); --off:#5d676f;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111416; --surface:#1a1e21; --ink:#e8ecee; --muted:#97a2ab; --line:#2c3237;
+  --accent:#f2a93b; --accent-fill:#f2a93b; --sharp:#4cc38a; --sharp-fill:rgba(76,195,138,.16); --off:#5d676f;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--f-body); font-size:16px; line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:28px 48px;
+}
+.wrap{max-width:1180px; margin:0 auto; display:flex; flex-direction:column; gap:28px}
+
+header{display:flex; flex-direction:column; gap:6px}
+.eyebrow{font-family:var(--f-mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent)}
+h1{
+  font-family:var(--f-display); font-stretch:118%; font-weight:780;
+  font-size:clamp(30px, 5vw, 52px); line-height:1.02; margin:0; letter-spacing:-.01em;
+  text-wrap:balance;
+}
+h1 .mm{font-stretch:70%; font-weight:500; color:var(--muted)}
+.lede{margin:4px 0 0; color:var(--muted); max-width:62ch; font-size:17px}
+
+.studio{display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:20px; align-items:start}
+@media (max-width:900px){ .studio{grid-template-columns:minmax(0,1fr)} }
+
+/* Visor */
+.viewfinder{
+  position:relative; width:100%; max-width:100%; aspect-ratio:3/2; overflow:hidden;
+  border-radius:6px; background:#7b8a6a; isolation:isolate;
+  box-shadow:0 0 0 1px rgba(0,0,0,.25), 0 18px 40px -22px rgba(0,0,0,.55);
+}
+.viewfinder canvas{position:absolute; display:block}
+.vf-ui{position:absolute; inset:0; pointer-events:none; color:#fff; font-family:var(--f-mono)}
+.corner{position:absolute; width:22px; height:22px; border:2px solid rgba(255,255,255,.75)}
+.corner.tl{top:12px; left:12px; border-right:0; border-bottom:0}
+.corner.tr{top:12px; right:12px; border-left:0; border-bottom:0}
+.corner.bl{bottom:44px; left:12px; border-right:0; border-top:0}
+.corner.br{bottom:44px; right:12px; border-left:0; border-top:0}
+.af{
+  position:absolute; width:46px; height:46px; margin:-23px 0 0 -23px;
+  border:2px solid #57e39a; border-radius:3px; box-shadow:0 0 0 1px rgba(0,0,0,.35);
+  transition:left .35s ease, top .35s ease;
+}
+.af-note{
+  position:absolute; top:14px; left:50%; transform:translateX(-50%);
+  background:rgba(0,0,0,.55); padding:4px 10px; border-radius:3px; font-size:12px; white-space:nowrap;
+}
+.vf-bar{
+  position:absolute; left:0; right:0; bottom:0; height:34px; display:flex; align-items:center; gap:18px;
+  padding:0 14px; background:linear-gradient(transparent, rgba(0,0,0,.6)); font-size:13px; letter-spacing:.04em;
+  text-shadow:0 1px 2px rgba(0,0,0,.6); flex-wrap:nowrap; overflow:hidden;
+}
+.vf-bar b{font-weight:600; color:#ffd27a}
+.vf-bar .spacer{flex:1}
+@media (max-width:520px){ .vf-bar{gap:10px; font-size:11px} .vf-bar .iso{display:none} }
+
+/* Painel */
+.panel{
+  background:var(--surface); border:1px solid var(--line); border-radius:8px;
+  padding:18px; display:flex; flex-direction:column; gap:18px; min-width:0;
+}
+.ring{display:flex; flex-direction:column; gap:8px}
+.ring-head{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+.ring-head label{font-size:12px; font-family:var(--f-mono); letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.ring-val{font-family:var(--f-display); font-stretch:110%; font-weight:720; font-size:30px; line-height:1; font-variant-numeric:tabular-nums}
+.ring-val small{font-size:15px; font-weight:500; color:var(--muted); margin-left:2px}
+.scale{display:flex; justify-content:space-between; font-family:var(--f-mono); font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums}
+.hint{font-size:13.5px; color:var(--muted); margin:0}
+
+input[type=range]{-webkit-appearance:none; appearance:none; width:100%; height:28px; background:transparent; margin:0; cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:6px; border-radius:3px;
+  background:repeating-linear-gradient(90deg, var(--line) 0 2px, transparent 2px 9px), var(--bg); border:1px solid var(--line)}
+input[type=range]::-moz-range-track{height:6px; border-radius:3px; background:var(--bg); border:1px solid var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:22px; height:22px; margin-top:-9px; border-radius:50%;
+  background:var(--accent-fill); border:3px solid var(--surface); box-shadow:0 0 0 1px var(--accent-fill)}
+input[type=range]::-moz-range-thumb{width:16px; height:16px; border-radius:50%; background:var(--accent-fill); border:3px solid var(--surface); box-shadow:0 0 0 1px var(--accent-fill)}
+input[type=range]:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:4px}
+
+.iris-row{display:flex; gap:14px; align-items:center}
+.iris-row canvas{width:96px; height:96px; flex:none}
+.iris-facts{display:flex; flex-direction:column; gap:2px; font-size:14px; min-width:0}
+.iris-facts .k{color:var(--muted)}
+.iris-facts .v{font-family:var(--f-mono); font-variant-numeric:tabular-nums; font-weight:600}
+
+.btns{display:flex; flex-wrap:wrap; gap:8px}
+button{
+  font:inherit; font-size:14px; cursor:pointer; border-radius:999px; padding:7px 14px;
+  border:1px solid var(--line); background:var(--bg); color:var(--ink);
+}
+button:hover{border-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+button[aria-pressed="true"]{background:var(--ink); color:var(--surface); border-color:var(--ink)}
+button.play{background:var(--accent-fill); border-color:var(--accent-fill); color:#1b1206; font-weight:600}
+.seg{display:flex; flex-wrap:wrap; gap:6px}
+.seg button{padding:5px 12px; font-size:13.5px}
+hr.sep{border:0; border-top:1px solid var(--line); margin:0}
+
+/* Profundidade de campo */
+.dof{background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:18px; display:flex; flex-direction:column; gap:12px}
+.dof-top{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:8px 20px}
+.dof h2, .learn h2{font-family:var(--f-display); font-stretch:105%; font-weight:700; font-size:20px; margin:0}
+.dof-sum{font-size:16px; margin:0; max-width:70ch}
+.dof-sum strong{color:var(--sharp)}
+.dof-svg{overflow-x:auto}
+.dof-svg svg{display:block; width:100%; min-width:560px; height:auto}
+.t-axis{stroke:var(--line); stroke-width:1.5}
+.t-tick{stroke:var(--line)}
+.t-lbl{fill:var(--muted); font-family:var(--f-mono); font-size:13px}
+.t-band{fill:var(--sharp-fill); stroke:var(--sharp); stroke-width:1.5}
+.t-in{fill:var(--sharp)}
+.t-out{fill:var(--off)}
+.t-name{fill:var(--ink); font-family:var(--f-body); font-size:15px}
+.t-cam{fill:var(--ink)}
+.t-focus{stroke:var(--accent); stroke-width:2; stroke-dasharray:4 4}
+
+/* Explicação */
+.learn{display:flex; flex-direction:column; gap:14px}
+.cols{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:22px}
+@media (max-width:820px){ .cols{grid-template-columns:minmax(0,1fr)} }
+.col h3{font-family:var(--f-display); font-stretch:115%; font-size:17px; margin:0 0 4px; display:flex; gap:8px; align-items:baseline}
+.col h3 span{font-family:var(--f-mono); font-size:12px; font-weight:400; color:var(--accent); letter-spacing:.06em}
+.col p{margin:0; color:var(--muted); max-width:52ch}
+.rule{font-family:var(--f-display); font-stretch:108%; font-weight:650; font-size:clamp(18px,2.4vw,22px); margin:4px 0 0; text-wrap:balance}
+.rule em{font-style:normal; color:var(--accent)}
+.foot{font-size:13px; color:var(--muted); margin:0}
+@media (prefers-reduced-motion: reduce){ .af{transition:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Laboratório de lente · 24-70mm f/2.8</div>
+    <h1>Brinque com a lente <span class="mm">24–70</span></h1>
+    <p class="lede">Mexa na abertura, no zoom e na distância e veja, no visor, o que acontece com a noiva e com o fundo. É a mesma conta que a sua câmera faz.</p>
+  </header>
+
+  <section class="studio" aria-label="Simulador">
+    <div class="viewfinder" id="vf" role="img" aria-label="Visor da câmera mostrando uma noiva com árvores e luzes ao fundo">
+      <div class="vf-ui">
+        <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+        <div class="af" id="af"></div>
+        <div class="af-note" id="afNote" hidden></div>
+        <div class="vf-bar">
+          <span id="barF"><b>70</b>mm</span>
+          <span id="barN"><b>f/2.8</b></span>
+          <span id="barS">1/1000</span>
+          <span class="iso">ISO 100</span>
+          <span class="spacer"></span>
+          <span id="barD">foco 2,5 m</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ring">
+        <div class="ring-head">
+          <label for="ap">Abertura</label>
+          <div class="ring-val" id="apVal">f/2.8</div>
+        </div>
+        <input type="range" id="ap" min="0" max="18" step="1" value="0" aria-describedby="apHint">
+        <div class="scale"><span>f/2.8</span><span>f/5.6</span><span>f/11</span><span>f/22</span></div>
+        <p class="hint" id="apHint">Número menor abre mais o diafragma: mais luz e mais desfoque.</p>
+      </div>
+
+      <div class="iris-row">
+        <canvas id="iris" width="192" height="192" aria-hidden="true"></canvas>
+        <div class="iris-facts">
+          <div><span class="k">Luz que entra: </span><span class="v" id="light">100%</span></div>
+          <div><span class="k">Velocidade p/ mesma foto: </span><span class="v" id="speed">1/1000</span></div>
+          <div><span class="k">Fundo: </span><span class="v" id="bgq">muito desfocado</span></div>
+        </div>
+      </div>
+
+      <div class="btns">
+        <button class="play" id="play" type="button">Animar abertura</button>
+      </div>
+
+      <hr class="sep">
+
+      <div class="ring">
+        <div class="ring-head">
+          <label for="fl">Distância focal</label>
+          <div class="ring-val" id="flVal">70<small>mm</small></div>
+        </div>
+        <input type="range" id="fl" min="24" max="70" step="1" value="70">
+        <div class="scale"><span>24</span><span>35</span><span>50</span><span>70</span></div>
+        <p class="hint">É o zoom. Muda o enquadramento e também o quanto o fundo desfoca.</p>
+      </div>
+
+      <div class="ring">
+        <div class="ring-head">
+          <label for="ds">Você até a noiva</label>
+          <div class="ring-val" id="dsVal">2,5<small>m</small></div>
+        </div>
+        <input type="range" id="ds" min="1.5" max="8" step="0.1" value="2.5">
+        <div class="scale"><span>1,5 m</span><span>8 m</span></div>
+      </div>
+
+      <div class="ring">
+        <div class="ring-head"><label>Foco em</label></div>
+        <div class="seg" id="focusSeg">
+          <button type="button" data-f="flores" aria-pressed="false">Flores</button>
+          <button type="button" data-f="noiva" aria-pressed="true">Noiva</button>
+          <button type="button" data-f="arvores" aria-pressed="false">Árvores</button>
+          <button type="button" data-f="luzes" aria-pressed="false">Luzes</button>
+        </div>
+      </div>
+
+      <hr class="sep">
+
+      <div class="ring">
+        <div class="ring-head"><label>Situações prontas</label></div>
+        <div class="btns" id="presets">
+          <button type="button" data-p="70,2.8,2.5">Retrato · 70mm f/2.8</button>
+          <button type="button" data-p="35,4,3.5">Casal e cenário · 35mm f/4</button>
+          <button type="button" data-p="24,8,5">Grupo · 24mm f/8</button>
+          <button type="button" data-p="24,16,3">Tudo nítido · 24mm f/16</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dof" aria-label="Profundidade de campo">
+    <div class="dof-top">
+      <h2>O que fica nítido</h2>
+      <span class="eyebrow" id="dofRange">2,41 m a 2,60 m</span>
+    </div>
+    <p class="dof-sum" id="dofSum"></p>
+    <div class="dof-svg"><svg id="dofSvg" viewBox="0 0 1000 150" role="img" aria-label="Régua de distância mostrando a faixa nítida"></svg></div>
+  </section>
+
+  <section class="learn">
+    <h2>Abertura não é distância focal</h2>
+    <div class="cols">
+      <div class="col">
+        <h3>Abertura <span>f/2.8 → f/22</span></h3>
+        <p>É o tamanho do buraco do diafragma. Em f/2.8 ele está todo aberto: entra muita luz e só uma fatia fina da cena fica nítida. Em f/22 o buraco é pequeno, quase tudo fica nítido e entra 64 vezes menos luz.</p>
+      </div>
+      <div class="col">
+        <h3>Distância focal <span>24 → 70 mm</span></h3>
+        <p>É o zoom da lente. Em 24mm você vê a cena aberta; em 70mm você fecha na noiva. Mudar a abertura não muda a distância focal: a lente continua sendo 70mm em f/2.8 ou em f/22.</p>
+      </div>
+      <div class="col">
+        <h3>Distância <span>você ↔ noiva ↔ fundo</span></h3>
+        <p>Quanto mais perto você está da noiva e mais longe o fundo está dela, mais o fundo derrete. Por isso um retrato a 70mm com o casal longe das árvores fica tão limpo.</p>
+      </div>
+    </div>
+    <p class="rule">Para mais desfoque: <em>número f menor</em>, <em>mais zoom</em>, <em>mais perto</em> do casal e <em>fundo mais longe</em>.</p>
+    <p class="foot">Simulação de câmera full frame, com círculo de confusão de 0,03 mm. A velocidade considera ISO 100 e a mesma exposição de f/2.8 a 1/1000.</p>
+  </section>
+</div>
+
+<script>
+(function(){
+  const STOPS=[2.8,3.2,3.5,4,4.5,5,5.6,6.3,7.1,8,9,10,11,13,14,16,18,20,22];
+  const SPEEDS=[8000,6400,5000,4000,3200,2500,2000,1600,1250,1000,800,640,500,400,320,250,200,160,125,100,80,60,50,40,30,25,20,15,13,10,8];
+  const COC=0.03, SENSOR=36, CAM_H=1.45, BLADES=9;
+  const D={flores:0.9, arvores:8, luzes:14, colinas:40};
+  const state={N:2.8, f:70, s:2.5, focus:'noiva'};
+  const $=id=>document.getElementById(id);
+
+  // ---------- dados da cena (em metros, gerados uma vez) ----------
+  function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+  const R=rng(7);
+  const TREES=[-10,-6,-2,2.4,6.2,10.5,-14,14].map(x=>{
+    const blobs=[];const n=9+Math.floor(R()*5);
+    for(let i=0;i<n;i++){blobs.push({dx:(R()-.5)*2.6, dy:(R()-.3)*1.8, r:.7+R()*.7, c:['#2f4826','#3b5a2c','#4a6b33','#56773a'][Math.floor(R()*4)]});}
+    return {x, top:3.4+R()*.8, blobs};
+  });
+  const FLOWERS=[];
+  [-1,1].forEach(side=>{for(let i=0;i<16;i++){
+    FLOWERS.push({x:side*(.28+R()*.5), h:.92+R()*.3, lean:(R()-.5)*.08, r:.022+R()*.02,
+      c:['#f3b6c4','#fbe7ea','#e88aa2','#ffffff','#f7cf9c'][Math.floor(R()*5)]});
+  }});
+  const BOUQUET=[];for(let i=0;i<14;i++){const a=R()*Math.PI*2, rr=R()*.06;BOUQUET.push({dx:Math.cos(a)*rr, dy:Math.sin(a)*rr*.8, r:.022+R()*.014, c:['#f6c3cf','#ffffff','#e793a8','#fde9d4'][Math.floor(R()*4)]});}
+  const LIGHTS=[];
+  [[3.5,.95,0],[4.3,1.1,.25]].forEach(([top,sag,off])=>{for(let x=-16+off;x<=16;x+=.55){LIGHTS.push({x, y:top-sag*(1-(x/16)**2)-.25*Math.cos(x*.9)})}});
+
+  // ---------- canvases ----------
+  const vf=$('vf');
+  const names=['far','lights','mid','bride','fore'];
+  const C={};
+  names.forEach(n=>{const c=document.createElement('canvas');C[n]=c;vf.insertBefore(c, vf.querySelector('.vf-ui'));});
+  let Wv=0,Hv=0,M=0,dpr=1;
+
+  function resize(){
+    Wv=vf.clientWidth; Hv=vf.clientHeight; if(!Wv||!Hv) return;
+    M=Math.round(Wv*.08); dpr=Math.min(window.devicePixelRatio||1,2);
+    names.forEach(n=>{const c=C[n];
+      c.style.left=-M+'px'; c.style.top=-M+'px';
+      c.style.width=(Wv+2*M)+'px'; c.style.height=(Hv+2*M)+'px';
+      c.width=Math.round((Wv+2*M)*dpr); c.height=Math.round((Hv+2*M)*dpr);
+    });
+    drawScene();
+  }
+
+  function proj(d){
+    const p=Wv*state.f/(SENSOR*d), cx=(Wv+2*M)/2, cy=(Hv+2*M)/2;
+    return {p, X:x=>cx+x*p, Y:y=>cy+(CAM_H-y)*p, cx, cy};
+  }
+  function ctxOf(n){const c=C[n], x=c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,Wv+2*M,Hv+2*M); return x;}
+  function ell(x,cx,cy,rx,ry,fill){x.beginPath();x.ellipse(cx,cy,Math.max(rx,.1),Math.max(ry,.1),0,0,Math.PI*2);x.fillStyle=fill;x.fill();}
+
+  function drawFar(){
+    const x=ctxOf('far'), T=Wv+2*M, H=Hv+2*M, {cy}=proj(40);
+    const sky=x.createLinearGradient(0,0,0,cy);
+    sky.addColorStop(0,'#8fa9c9'); sky.addColorStop(.6,'#e9c9a3'); sky.addColorStop(1,'#f7d9a8');
+    x.fillStyle=sky; x.fillRect(0,0,T,cy+2);
+    const g=x.createLinearGradient(0,cy,0,H);
+    g.addColorStop(0,'#c4b071'); g.addColorStop(.35,'#8f9450'); g.addColorStop(1,'#5f7638');
+    x.fillStyle=g; x.fillRect(0,cy,T,H-cy);
+    // sol
+    const sx=proj(40).X(-0.3*40), sy=cy-0.04*proj(40).p*40;
+    const sun=x.createRadialGradient(sx,sy,0,sx,sy,Math.max(T,H)*.7);
+    sun.addColorStop(0,'rgba(255,236,190,.95)'); sun.addColorStop(.12,'rgba(255,214,150,.55)'); sun.addColorStop(1,'rgba(255,200,140,0)');
+    x.fillStyle=sun; x.fillRect(0,0,T,H);
+    // colinas
+    [[60,'rgba(132,140,176,.75)',9],[34,'rgba(96,112,120,.85)',5]].forEach(([d,col,amp])=>{
+      const P=proj(d); x.beginPath(); x.moveTo(P.X(-200),P.Y(0));
+      for(let xx=-200;xx<=200;xx+=3){x.lineTo(P.X(xx),P.Y(amp*.5+amp*.35*Math.sin(xx*.06+d)+amp*.2*Math.sin(xx*.17)))}
+      x.lineTo(P.X(200),P.Y(0)); x.closePath(); x.fillStyle=col; x.fill();
+    });
+  }
+
+  function drawMid(){
+    const x=ctxOf('mid'), P=proj(D.arvores);
+    // sebe
+    x.beginPath(); x.moveTo(P.X(-60),P.Y(-.2));
+    for(let xx=-60;xx<=60;xx+=.4){x.lineTo(P.X(xx),P.Y(1.25+.16*Math.sin(xx*1.7)+.1*Math.sin(xx*4.3)))}
+    x.lineTo(P.X(60),P.Y(-.2)); x.closePath(); x.fillStyle='#3a5629'; x.fill();
+    TREES.forEach(t=>{
+      x.fillStyle='#4a3a2a'; x.fillRect(P.X(t.x-.17),P.Y(t.top),.34*P.p,t.top*P.p+2);
+      t.blobs.forEach(b=>ell(x,P.X(t.x+b.dx),P.Y(t.top+.6+b.dy),b.r*P.p,b.r*P.p*.92,b.c));
+      t.blobs.slice(0,4).forEach(b=>ell(x,P.X(t.x+b.dx-.25),P.Y(t.top+.9+b.dy),b.r*.55*P.p,b.r*.45*P.p,'rgba(214,196,110,.35)'));
+    });
+  }
+
+  function drawBride(){
+    const x=ctxOf('bride'), P=proj(state.s), {X,Y,p}=P;
+    const skin='#e6bc9f', hair='#4a2f22';
+    ell(x,X(0),Y(0),.55*p,.07*p,'rgba(40,44,20,.28)');
+    // véu
+    x.beginPath(); x.moveTo(X(-.05),Y(1.68));
+    x.bezierCurveTo(X(-.26),Y(1.5),X(-.4),Y(1.0),X(-.36),Y(.7)); x.lineTo(X(.36),Y(.7));
+    x.bezierCurveTo(X(.4),Y(1.0),X(.26),Y(1.5),X(.05),Y(1.68)); x.closePath();
+    x.fillStyle='rgba(255,255,255,.4)'; x.fill();
+    ell(x,X(0),Y(1.59),.1*p,.1*p,hair);
+    // saia
+    const sk=x.createLinearGradient(X(-.47),0,X(.47),0);
+    sk.addColorStop(0,'#ddd3c3'); sk.addColorStop(.5,'#fbf8f2'); sk.addColorStop(1,'#d9cebd');
+    x.beginPath(); x.moveTo(X(-.13),Y(1.02));
+    x.bezierCurveTo(X(-.2),Y(.6),X(-.4),Y(.2),X(-.48),Y(0)); x.lineTo(X(.48),Y(0));
+    x.bezierCurveTo(X(.4),Y(.2),X(.2),Y(.6),X(.13),Y(1.02)); x.closePath(); x.fillStyle=sk; x.fill();
+    x.strokeStyle='rgba(170,150,120,.35)'; x.lineWidth=Math.max(.5,.005*p);
+    [-.3,-.15,0,.15,.3].forEach(k=>{x.beginPath();x.moveTo(X(k*.3),Y(.98));x.quadraticCurveTo(X(k*.9),Y(.5),X(k*1.4),Y(.02));x.stroke();});
+    // ombros
+    ell(x,X(0),Y(1.385),.19*p,.04*p,skin);
+    // corpete
+    x.beginPath(); x.moveTo(X(-.13),Y(1.02)); x.lineTo(X(-.165),Y(1.3)); x.quadraticCurveTo(X(-.185),Y(1.375),X(-.14),Y(1.385));
+    x.lineTo(X(.14),Y(1.385)); x.quadraticCurveTo(X(.185),Y(1.375),X(.165),Y(1.3)); x.lineTo(X(.13),Y(1.02)); x.closePath();
+    x.fillStyle='#f8f4ec'; x.fill();
+    // renda
+    x.save(); x.clip(); x.fillStyle='#d6cab6'; let row=0;
+    for(let yy=1.04;yy<1.38;yy+=.022){for(let xx=-.18+(row%2)*.011;xx<.18;xx+=.022){ell(x,X(xx),Y(yy),.0035*p,.0035*p,'#d6cab6')}row++;}
+    x.restore();
+    x.fillStyle='#d4bd8f'; x.fillRect(X(-.135),Y(1.065),.27*p,.045*p);
+    // braços
+    x.strokeStyle=skin; x.lineCap='round'; x.lineJoin='round'; x.lineWidth=.06*p;
+    [[-1],[1]].forEach(([s])=>{x.beginPath();x.moveTo(X(s*.175),Y(1.37));x.lineTo(X(s*.215),Y(1.17));x.lineTo(X(s*.05),Y(1.0));x.stroke();});
+    // buquê
+    ell(x,X(0),Y(.99),.085*p,.06*p,'#5a7a3c');
+    BOUQUET.forEach(b=>{ell(x,X(b.dx),Y(1.0+b.dy),b.r*p,b.r*p,b.c);ell(x,X(b.dx),Y(1.0+b.dy),b.r*.35*p,b.r*.35*p,'rgba(190,90,110,.45)')});
+    // pescoço, rosto
+    x.fillStyle=skin; x.fillRect(X(-.034),Y(1.475),.068*p,.1*p);
+    ell(x,X(0),Y(1.55),.083*p,.104*p,skin);
+    x.beginPath(); x.ellipse(X(0),Y(1.585),.092*p,.075*p,0,Math.PI,0); x.fillStyle=hair; x.fill();
+    ell(x,X(0),Y(1.685),.055*p,.035*p,hair);
+    [[-.07,1.64],[-.05,1.665],[-.085,1.615]].forEach(([a,b])=>ell(x,X(a),Y(b),.012*p,.012*p,'#fffaf0'));
+    ell(x,X(-.03),Y(1.556),.01*p,.006*p,'#2a1d18'); ell(x,X(.03),Y(1.556),.01*p,.006*p,'#2a1d18');
+    x.strokeStyle='#6b4a3a'; x.lineWidth=Math.max(.5,.004*p);
+    [-1,1].forEach(s=>{x.beginPath();x.moveTo(X(s*.045),Y(1.575));x.quadraticCurveTo(X(s*.03),Y(1.585),X(s*.015),Y(1.577));x.stroke();});
+    ell(x,X(-.05),Y(1.528),.016*p,.011*p,'rgba(230,120,120,.28)'); ell(x,X(.05),Y(1.528),.016*p,.011*p,'rgba(230,120,120,.28)');
+    x.beginPath(); x.arc(X(0),Y(1.53),.022*p,.2*Math.PI,.8*Math.PI); x.strokeStyle='#a8505a'; x.lineWidth=Math.max(.6,.006*p); x.stroke();
+  }
+
+  function drawFore(){
+    const x=ctxOf('fore'), {X,Y,p}=proj(D.flores);
+    FLOWERS.forEach(f=>{
+      x.strokeStyle='#4f6b34'; x.lineWidth=Math.max(1,.008*p); x.beginPath(); x.moveTo(X(f.x),Y(.6)); x.quadraticCurveTo(X(f.x),Y(f.h*.8),X(f.x+f.lean),Y(f.h)); x.stroke();
+      ell(x,X(f.x-.03),Y(f.h-.12),.035*p,.014*p,'#5e7d3f');
+    });
+    FLOWERS.forEach(f=>{
+      const cx=f.x+f.lean;
+      for(let i=0;i<6;i++){const a=i/6*Math.PI*2; ell(x,X(cx+Math.cos(a)*f.r*.75),Y(f.h+Math.sin(a)*f.r*.75),f.r*.6*p,f.r*.6*p,f.c);}
+      ell(x,X(cx),Y(f.h),f.r*.35*p,f.r*.35*p,'#e6b44a');
+    });
+  }
+
+  // ---------- óptica ----------
+  function focusDist(){return state.focus==='noiva'?state.s:D[state.focus];}
+  function blurMM(d){const F=focusDist()*1000, dd=d*1000, f=state.f; return (f*f/(state.N*(F-f)))*Math.abs(dd-F)/dd;}
+  function blurPx(d){return blurMM(d)/SENSOR*Wv;}
+  function dof(){
+    const F=focusDist()*1000, f=state.f, H=f*f/(state.N*COC)+f;
+    const near=F*(H-f)/(H+F-2*f), far=F<H?F*(H-f)/(H-F):Infinity;
+    return {near:near/1000, far:far/1000};
+  }
+
+  function drawLights(){
+    const x=ctxOf('lights'); if(!Wv) return;
+    const P=proj(D.luzes), Dp=blurPx(D.luzes);
+    const k=Math.min(1,Math.max(0,(state.N-2.8)/(7-2.8)));
+    x.globalCompositeOperation='lighter';
+    LIGHTS.forEach(L=>{
+      const X=P.X(L.x), Y=P.Y(L.y), base=Math.max(1.6,.07*P.p), dia=Math.max(base,Dp), r=dia/2;
+      if(X<-r||X>Wv+2*M+r||Y<-r||Y>Hv+2*M+r) return;
+      const a=Math.min(1,.28+.72*(base/dia));
+      x.beginPath();
+      for(let i=0;i<=72;i++){
+        const t=i/72*Math.PI*2, seg=2*Math.PI/BLADES, rel=((t+Math.PI/2)%seg+seg)%seg-seg/2;
+        const rp=Math.cos(Math.PI/BLADES)/Math.cos(rel), rr=r*((1-k)+rp*k);
+        const px=X+Math.cos(t)*rr, py=Y+Math.sin(t)*rr; i?x.lineTo(px,py):x.moveTo(px,py);
+      }
+      const gr=x.createRadialGradient(X,Y,0,X,Y,r);
+      gr.addColorStop(0,`rgba(255,232,170,${a})`); gr.addColorStop(.8,`rgba(255,205,120,${a*.75})`); gr.addColorStop(1,`rgba(255,190,100,${a*(dia>8?.95:.3)})`);
+      x.fillStyle=gr; x.fill();
+    });
+    x.globalCompositeOperation='source-over';
+  }
+
+  function applyBlur(){
+    const set=(n,d)=>{const s=Math.min(90,.42*blurPx(d)); C[n].style.filter=s<.25?'none':`blur(${s.toFixed(2)}px)`;};
+    set('far',D.colinas); set('mid',D.arvores); set('bride',state.s); set('fore',D.flores);
+  }
+
+  function drawScene(){ if(!Wv) return; drawFar(); drawMid(); drawBride(); drawFore(); drawLights(); applyBlur(); updateUI(); }
+  function drawOptics(){ drawLights(); applyBlur(); updateUI(); }
+
+  // ---------- diafragma ----------
+  function drawIris(){
+    const c=$('iris'), x=c.getContext('2d'), S=c.width, cx=S/2, cy=S/2, R=S*.46;
+    x.clearRect(0,0,S,S);
+    const cs=getComputedStyle(document.documentElement);
+    ell(x,cx,cy,R,R,'#1d2125');
+    const r=R*.88*(2.8/state.N);
+    const pts=[]; for(let i=0;i<BLADES;i++){const a=i/BLADES*Math.PI*2-Math.PI/2+state.N*.05; pts.push([cx+Math.cos(a)*r, cy+Math.sin(a)*r]);}
+    // lâminas
+    x.strokeStyle='#4a5158'; x.lineWidth=2;
+    for(let i=0;i<BLADES;i++){const [ax,ay]=pts[i], [bx,by]=pts[(i+1)%BLADES], dx=bx-ax, dy=by-ay, L=Math.hypot(dx,dy)||1;
+      x.beginPath(); x.moveTo(ax,ay); x.lineTo(ax+dx/L*R*1.4, ay+dy/L*R*1.4); x.save(); x.beginPath(); x.restore();
+      x.save(); x.beginPath(); x.arc(cx,cy,R,0,Math.PI*2); x.clip(); x.beginPath(); x.moveTo(ax,ay); x.lineTo(ax+dx/L*R*1.6, ay+dy/L*R*1.6); x.stroke(); x.restore();}
+    // abertura
+    x.beginPath(); pts.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b)); x.closePath();
+    const g=x.createRadialGradient(cx,cy,0,cx,cy,Math.max(r,1));
+    g.addColorStop(0,'#fff4d6'); g.addColorStop(1,'#f2b24a'); x.fillStyle=g; x.fill();
+    x.lineWidth=S*.03; x.strokeStyle=cs.getPropertyValue('--accent-fill').trim()||'#d98a00';
+    x.beginPath(); x.arc(cx,cy,R,0,Math.PI*2); x.stroke();
+  }
+
+  // ---------- régua de profundidade de campo ----------
+  const fmtNum=(v,dig)=>v.toFixed(dig).replace('.',',');
+  const fmtM=m=>!isFinite(m)?'infinito':m<1?Math.round(m*100)+' cm':fmtNum(m,2)+' m';
+  function drawDof(){
+    const {near,far}=dof(), x0=60, x1=975, lo=Math.log(.5), hi=Math.log(70);
+    const xs=d=>x0+(Math.log(Math.min(Math.max(d,.5),70))-lo)/(hi-lo)*(x1-x0);
+    const items=[['Flores',D.flores],['Noiva',state.s],['Árvores',D.arvores],['Luzes',D.luzes],['Colinas',D.colinas]];
+    let s='';
+    s+=`<rect class="t-band" x="${xs(near)}" y="38" width="${Math.max(2,xs(far)-xs(near))}" height="44" rx="3"/>`;
+    s+=`<line class="t-axis" x1="${x0}" y1="60" x2="${x1}" y2="60"/>`;
+    [.5,1,2,3,5,10,20,50].forEach(t=>{s+=`<line class="t-tick" x1="${xs(t)}" y1="84" x2="${xs(t)}" y2="92"/><text class="t-lbl" x="${xs(t)}" y="110" text-anchor="middle">${String(t).replace('.',',')} m</text>`});
+    s+=`<line class="t-focus" x1="${xs(focusDist())}" y1="28" x2="${xs(focusDist())}" y2="92"/>`;
+    // câmera
+    s+=`<g transform="translate(14,48)"><rect class="t-cam" x="0" y="2" width="30" height="20" rx="3"/><rect class="t-cam" x="8" y="-3" width="12" height="6" rx="1"/><rect class="t-cam" x="28" y="6" width="10" height="12" rx="1"/></g>`;
+    let lastX=-99, flip=0;
+    items.forEach(([n,d])=>{const inside=d>=near-1e-6&&d<=far+1e-6, X=xs(d); flip=(X-lastX<70)?1-flip:0; lastX=X;
+      s+=`<circle class="${inside?'t-in':'t-out'}" cx="${X}" cy="60" r="7"/>`;
+      s+=`<text class="t-name" x="${X}" y="${flip?140:24}" text-anchor="middle">${n}${inside?' ✓':''}</text>`;});
+    $('dofSvg').innerHTML=s;
+    $('dofRange').textContent=`${fmtM(near)} a ${fmtM(far)}`;
+    const total=far-near;
+    const tTxt=!isFinite(total)?`tudo de ${fmtM(near)} até o infinito`:`só ${fmtM(total)}, de ${fmtM(near)} a ${fmtM(far)}`;
+    const fName={noiva:'na noiva',arvores:'nas árvores',luzes:'nas luzes',flores:'nas flores'}[state.focus];
+    let extra='';
+    if(state.focus==='noiva'){
+      extra = total<.4?' É uma fatia tão fina que dá para errar o foco entre o olho e a orelha.' : total<2?' A noiva inteira fica nítida, e o fundo continua separado dela.' : ' Noiva e fundo ficam nítidos juntos.';
+    }
+    $('dofSum').innerHTML=`Com foco ${fName} a ${fmtM(focusDist())}, em <strong>f/${fmtNum(state.N,state.N<10?1:0)}</strong> e ${state.f}mm, fica nítido <strong>${tTxt}</strong>.${extra}`;
+  }
+
+  // ---------- interface ----------
+  function nearestStop(N){let b=0;STOPS.forEach((v,i)=>{if(Math.abs(Math.log(v/N))<Math.abs(Math.log(STOPS[b]/N)))b=i});return b;}
+  function speedFor(N){const t=(1/1000)*(N/2.8)**2; let best=SPEEDS[0]; SPEEDS.forEach(v=>{if(Math.abs(Math.log(1/v/t))<Math.abs(Math.log(1/best/t)))best=v}); return '1/'+best;}
+  function updateUI(){
+    const Ntxt='f/'+fmtNum(state.N,state.N<10?1:0);
+    $('apVal').textContent=Ntxt; $('barN').innerHTML=`<b>${Ntxt}</b>`;
+    $('flVal').innerHTML=`${state.f}<small>mm</small>`; $('barF').innerHTML=`<b>${state.f}</b>mm`;
+    $('dsVal').innerHTML=`${fmtNum(state.s,1)}<small>m</small>`;
+    $('barD').textContent='foco '+fmtM(focusDist());
+    const sp=speedFor(state.N); $('speed').textContent=sp; $('barS').textContent=sp;
+    const light=(2.8/state.N)**2*100; $('light').textContent=(light>=10?Math.round(light):fmtNum(light,1))+'%';
+    const bp=blurMM(D.arvores)/SENSOR*100;
+    $('bgq').textContent= state.focus!=='noiva'?'em foco: '+{arvores:'árvores',luzes:'luzes',flores:'flores'}[state.focus] : bp>1.4?'muito desfocado':bp>.7?'bem desfocado':bp>.3?'levemente desfocado':'quase nítido';
+    // AF
+    const tg={noiva:[0,1.56,state.s],arvores:[2.4,4.2,D.arvores],luzes:[0,2.7,D.luzes],flores:[.5,1.1,D.flores]}[state.focus];
+    const p=Wv*state.f/(SENSOR*tg[2]); let ax=Wv/2+tg[0]*p, ay=Hv/2+(CAM_H-tg[1])*p;
+    const off=ax<0||ax>Wv||ay<0||ay>Hv-34;
+    ax=Math.min(Math.max(ax,30),Wv-30); ay=Math.min(Math.max(ay,30),Hv-64);
+    $('af').style.left=ax+'px'; $('af').style.top=ay+'px';
+    const note=$('afNote'); note.hidden=!off; if(off) note.textContent='Fora do enquadramento: abra o zoom (24mm) para ver';
+    drawIris(); drawDof();
+  }
+
+  // controles
+  const ap=$('ap'), fl=$('fl'), ds=$('ds');
+  ap.addEventListener('input',()=>{stopAnim(); state.N=STOPS[+ap.value]; drawOptics();});
+  fl.addEventListener('input',()=>{state.f=+fl.value; drawScene();});
+  ds.addEventListener('input',()=>{state.s=+ds.value; drawScene();});
+  $('focusSeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return;
+    state.focus=b.dataset.f; document.querySelectorAll('#focusSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false')); drawOptics();});
+  $('presets').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; stopAnim();
+    const [f,N,s]=b.dataset.p.split(',').map(Number); state.f=f; state.N=N; state.s=s; state.focus='noiva';
+    fl.value=f; ap.value=STOPS.indexOf(N); ds.value=s;
+    document.querySelectorAll('#focusSeg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.f==='noiva'?'true':'false'));
+    drawScene();});
+
+  // animação da abertura
+  let raf=0, t0=0;
+  const playBtn=$('play');
+  function frame(ts){ if(!t0) t0=ts; const ph=((ts-t0)/7000)%1;
+    state.N=2.8*Math.pow(22/2.8,(1-Math.cos(ph*2*Math.PI))/2); ap.value=nearestStop(state.N); drawOptics(); raf=requestAnimationFrame(frame); }
+  function stopAnim(){ if(!raf) return; cancelAnimationFrame(raf); raf=0; t0=0; state.N=STOPS[+ap.value]; playBtn.textContent='Animar abertura'; playBtn.setAttribute('aria-pressed','false'); }
+  playBtn.addEventListener('click',()=>{ if(raf){stopAnim(); drawOptics(); return;} playBtn.textContent='Pausar'; playBtn.setAttribute('aria-pressed','true'); raf=requestAnimationFrame(frame); });
+
+  new ResizeObserver(resize).observe(vf);
+  if(window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',drawIris);
+  resize();
+})();
+</script>
+</body>
+</html>
